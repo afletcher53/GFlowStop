@@ -1,0 +1,46 @@
+{
+  "method": "Amortized Bayesian Stopping: log-linear policy distilled from an exact beta-binomial count-state Bellman teacher",
+  "not_a_gflownet": true,
+  "dataset": "PyTerrier vaswani",
+  "retrieval": "PyTerrier ready-made terrier_stemmed BM25",
+  "unjudged_documents": "treated as non-relevant",
+  "max_depth": 200,
+  "topics": 93,
+  "evaluation": {
+    "folds": 5,
+    "repeats": 5,
+    "inner_folds": 3,
+    "seed": 20260721,
+    "split_file": "splits.json"
+  },
+  "teacher": {
+    "model": "beta-binomial remaining-count",
+    "hard_certificates": true,
+    "temperature": 0.001
+  },
+  "student": {
+    "features": 11,
+    "steps": 1000,
+    "dagger_rounds": 2
+  },
+  "conditions": {
+    "q_star": [
+      0.3,
+      0.5,
+      0.7
+    ],
+    "cost": [
+      0.0005,
+      0.002,
+      0.005
+    ]
+  },
+  "bootstrap_replicates": 10000,
+  "versions": {
+    "python": "3.12.12",
+    "numpy": "2.5.1",
+    "pandas": "3.0.3",
+    "pyterrier": "1.0"
+  },
+  "git_revision": null
+}

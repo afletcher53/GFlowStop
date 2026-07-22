@@ -1,0 +1,13 @@
+{
+  "amortized_vs_count_bellman": {
+    "method": "Amortized-count",
+    "comparator": "Count-Bellman",
+    "topics": 93,
+    "mean_difference": 0.006621983273596175,
+    "bootstrap_95_ci": [
+      0.0012032706093189959,
+      0.012533629032258062
+    ],
+    "paired_sign_flip_p": 0.025097490250974904
+  }
+}
