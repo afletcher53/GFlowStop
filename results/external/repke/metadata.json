@@ -4,11 +4,11 @@
     0.1
   ],
   "check_interval": 15,
-  "external_benchmark_sha256": "2176d9b60e2be709124989e2f0a09d5061df99e20195618dbb41abc5d8ccff28",
+  "external_benchmark_sha256": "f71e2958167697676e3c1fc355b98dafee293b4a0080644d1f73b222166b60c8",
   "folds": 5,
   "framework_revision": "f880b63d29f1922783d55f564be68e29d5238fa5",
   "gflowstop_dirty": false,
-  "gflowstop_revision": "3ec09d14106ac420e64bf94c417d7b90a4f8b41c",
+  "gflowstop_revision": "7da7072405c34ddaba8d0580bec6c0e661b1e7ae",
   "include_local_scores": false,
   "info_files": {
     "data/external/repke/rankings/clef-CD005139-0-500-1-best.json": "508c4c3d683c3c82f4d15d2bfe794f52635ce4943320fe7987a44362013f5f7a",

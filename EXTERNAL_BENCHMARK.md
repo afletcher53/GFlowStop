@@ -3,9 +3,10 @@
 ## Status
 
 The repository now has a target-recall adapter for the public Repke et al.
-stopping-method framework. It has passed a miniature schema/cross-fitting test
-and one predeclared external Rank-only screen. No comparison with published
-baselines, CLEF-IP, or DTA result is currently claimed.
+stopping-method framework. It has passed a miniature schema/cross-fitting test,
+one external Rank-only screen, and a matched direct CMH baseline reproduction.
+No comparison with the remaining published baselines, CLEF-IP, or DTA result
+is currently claimed.
 
 The external benchmark has two separate leaderboards. This is deliberate:
 target-recall methods are assessed by safety and effort, while downstream
@@ -91,30 +92,41 @@ The threshold is a posterior statement, not a recall certificate. External
 failure rate and the worst-cell one-sided upper confidence bound are the
 headline safety measures.
 
-### Initial external screen
+### Matched external screen
 
-The initial run used the archived ranking files with SHA-256
+The matched runs used the archived ranking files with SHA-256
 `27395ee71116c629c7aba516c0c70aab782f39e90488405c180de8d798634e40`, the
-published-protocol filter, 15-document checks, five dataset-level folds, and
-GFlowStop source `3ec09d14106ac420e64bf94c417d7b90a4f8b41c`. It contains 217
-rankings from 81 dataset IDs. The checked archive is therefore short of the
-paper's stated 223 simulations; it is an external screen on the released
-files, not an exact paper reproduction.
+published-protocol filter, the framework's rounded `--batch-size 15` boundaries,
+and 217 rankings from 81 dataset IDs. The GFlowStop run was made from clean
+source `7da7072405c34ddaba8d0580bec6c0e661b1e7ae`; CMH was called directly
+from framework revision `f880b63d29f1922783d55f564be68e29d5238fa5` by source
+`fc37da869fc29064925b824cafefaeb2d838a4dc`. The checked archive is short of
+the paper's stated 223 simulations, so this is an external screen on the
+released files, not an exact paper reproduction.
 
-| Target recall | Confidence | Failure rate | Global 95% upper bound | Review fraction |
-| --- | ---: | ---: | ---: | ---: |
-| 0.80 | 0.95 | 18.89% | 23.81% | 44.85% |
-| 0.80 | 0.90 | 25.35% | 30.67% | 42.38% |
-| 0.90 | 0.95 | 1.38% | 3.53% | 74.96% |
-| 0.90 | 0.90 | 1.38% | 3.53% | 72.12% |
-| 0.95 | 0.95 | 0.00% | 1.37% | 90.08% |
-| 0.95 | 0.90 | 0.00% | 1.37% | 88.49% |
+Both methods use a requested 95% confidence level. CMH denotes the framework's
+`BUSCAR` implementation with its documented `bias=1.0` setting.
 
-This rejects any claim that the rank-only posterior rule is safe at 80%
-recall. The 90% and 95% aggregate rows are encouraging but do not pass the
-worst-dataset gate: each dataset has only one to three ranking simulations, so
-a zero-failure cell can still have a 95% upper bound between 63% and 95%.
-There is also no matched published-baseline result in this bundle yet.
+| Target recall | Method | Failure rate | Global 95% upper bound | Review fraction |
+| --- | --- | ---: | ---: | ---: |
+| 0.80 | GFlowStop-R rank only | 19.82% | 24.80% | 44.81% |
+| 0.80 | CMH | 0.46% | 2.17% | 55.02% |
+| 0.90 | GFlowStop-R rank only | 1.38% | 3.53% | 74.90% |
+| 0.90 | CMH | 0.00% | 1.37% | 65.24% |
+| 0.95 | GFlowStop-R rank only | 0.00% | 1.37% | 90.08% |
+| 0.95 | CMH | 0.00% | 1.37% | 76.02% |
+
+This is a negative result for the current recall method. At 80% recall, the
+rank-only posterior rule fails the 5% safety gate while CMH passes it. At 90%
+and 95%, its global bound is below 5%, but CMH reviews fewer records at the
+same aggregate bound. Both methods fail the predeclared worst-dataset gate:
+each dataset has only one to three simulations, so even a zero-failure cell
+can have a 95% upper bound between 63% and 95%.
+
+The optional local-score ablation is worse still: its failure rates are 22.58%,
+5.99%, and 1.38% at the three targets, while its review fractions are 40.22%,
+59.11%, and 81.62%. It therefore trades safety for early stopping and does not
+alter the conclusion.
 
 The committed first-stop rows, summary, and metadata are sufficient to audit
 the table. The 132 MB checkpoint trace remains ignored because it is fully
@@ -155,8 +167,8 @@ No external claim is promoted until all of these hold:
 6. Any Track-U result uses the task's own downstream utility and is reported
    separately from recall safety.
 
-The next executable experiment is to reproduce selected framework baselines
-on these exact 217 files, then merge their traces with GFlowStop before any
-efficiency comparison. CLEF, SYNERGY, and RCV1 are then reported as source or
-hold-out groups within that protocol; CLEF-IP and DTA begin only after their
-task-specific inputs are frozen.
+The recall branch is frozen at this negative result. The next experimental
+branch is Track U: freeze a CLEF-IP or DTA task-specific input manifest before
+building its observation model. A new recall-policy variant requires a
+predeclared calibration mechanism and a fresh held-out benchmark, not another
+threshold sweep on these 217 runs.

@@ -185,9 +185,12 @@ promotion gates.
    approximation and training objectives. Real collections come after those
    synthetic gates, not before.
 
-The Repke external target-recall adapter has now completed one predeclared
-rank-only screen on the released 81-dataset-ID subset. It fails badly at 80%
-recall; aggregate 90% and 95% results are not a safety promotion because the
-release has only one to three runs per dataset and no matched baseline has yet
-been reproduced. Its approximation, provenance, and required external gates
-are in `EXTERNAL_BENCHMARK.md`; no real-data superiority claim follows.
+The Repke external target-recall adapter has now completed a matched screen on
+the released 81-dataset-ID subset against the framework's direct CMH baseline.
+At 80% recall, rank-only GFlowStop-R fails the safety gate (19.82% failures;
+24.80% one-sided 95% upper bound), whereas CMH has 0.46% failures and a 2.17%
+upper bound. At 90% and 95%, CMH also uses less review effort at the same
+aggregate confidence level. The optional local-score ablation degrades safety.
+This freezes the current recall-policy line as a negative result; no real-data
+superiority or recall-certification claim follows. Its approximation,
+provenance, and remaining Track-U gate are in `EXTERNAL_BENCHMARK.md`.
