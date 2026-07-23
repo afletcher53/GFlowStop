@@ -6,7 +6,7 @@ import pandas as pd
 from pyarrow import Table, ipc
 
 from gflowstop.external_benchmark import _checkpoints, _published_repke_run, _recall_probability, evaluate_repke_rankings, load_repke_rankings, repke_ranking_from_frame
-from gflowstop.external_utility import evaluate_k1_split, fit_score_mean_prior
+from gflowstop.external_utility import evaluate_external_greedy, evaluate_k1_split, fit_score_mean_prior
 from gflowstop.toys import Episode
 
 
@@ -109,3 +109,25 @@ def test_k1_utility_summary_scores_rejection_as_correct_for_zero_worlds():
         lambda rows: (rows.action == np.where(rows.world, 1, 2)).mean(), include_groups=False,
     )
     assert np.allclose(summary.set_index("method").decision_accuracy.sort_index(), expected.sort_index())
+
+
+def test_external_greedy_runner_calls_the_supplied_implementation(tmp_path):
+    rankings = tmp_path / "rankings.csv"
+    pd.DataFrame({
+        "Topic": ["a", "a", "b"], "Rank": [1, 2, 1], "label": [1, 0, 0],
+        "prob_iso_z": [0.9, 0.1, 0.2],
+    }).to_csv(rankings, index=False)
+    implementation = tmp_path / "greedy.py"
+    implementation.write_text(
+        "from types import SimpleNamespace\n"
+        "def simulate_topic(rows, cost, q_star, probability_column, policy):\n"
+        "    assert policy == 'greedy' and probability_column == 'prob_iso_z'\n"
+        "    return SimpleNamespace(net_utility=float(rows[probability_column].sum() - cost), stop_depth=len(rows))\n"
+    )
+
+    result = evaluate_external_greedy(rankings, implementation, (0.5,), (0.1,), "prob_iso_z")
+
+    assert result.to_dict("records") == [
+        {"topic": "a", "q_star": 0.5, "cost": 0.1, "net_utility": 0.9, "stop_depth": 2},
+        {"topic": "b", "q_star": 0.5, "cost": 0.1, "net_utility": 0.1, "stop_depth": 1},
+    ]

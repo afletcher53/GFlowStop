@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -112,6 +114,27 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def evaluate_external_greedy(path: Path, script: Path, q_stars: tuple[float, ...], costs: tuple[float, ...], probability_column: str) -> pd.DataFrame:
+    """Call the supplied Greedy implementation directly on the fixed test rows."""
+    spec = importlib.util.spec_from_file_location("external_greedy", script)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot import external Greedy script {script}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    frame = pd.read_csv(path, usecols=["Topic", "Rank", "label", probability_column])
+    rows: list[dict[str, object]] = []
+    for q_star in q_stars:
+        for cost in costs:
+            for topic, group in frame.groupby("Topic", sort=True):
+                result = module.simulate_topic(group, cost, q_star, probability_column, "greedy")
+                rows.append({
+                    "topic": str(topic), "q_star": q_star, "cost": cost,
+                    "net_utility": result.net_utility, "stop_depth": result.stop_depth,
+                })
+    return pd.DataFrame(rows)
+
+
 def _floats(value: str) -> tuple[float, ...]:
     return tuple(float(part) for part in value.split(",") if part)
 
@@ -125,6 +148,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--output-dir", type=Path, default=Path("results/external/clefip_k1"))
     parser.add_argument("--q-stars", type=_floats, default=(0.5,))
     parser.add_argument("--costs", type=_floats, default=(0.01,))
+    parser.add_argument("--greedy-script", type=Path)
+    parser.add_argument("--greedy-probability-column", default="prob_iso_z")
     args = parser.parse_args(argv)
     revision = subprocess.run(["git", "-C", args.source_root, "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
     if revision != args.source_revision:
@@ -134,6 +159,21 @@ def main(argv: list[str] | None = None) -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     per_topic.to_csv(args.output_dir / "per_topic.csv", index=False)
     summary.to_csv(args.output_dir / "summary.csv", index=False)
+    if args.greedy_script:
+        greedy = evaluate_external_greedy(args.test_csv, args.greedy_script, args.q_stars, args.costs, args.greedy_probability_column)
+        greedy.to_csv(args.output_dir / "greedy_reference.csv", index=False)
+        comparisons = []
+        for method, group in per_topic.groupby("method", sort=False):
+            paired = group.merge(greedy, on=["topic", "q_star", "cost"], suffixes=("", "_greedy"), validate="one_to_one")
+            delta = paired.net_utility - paired.net_utility_greedy
+            comparisons.append({
+                "method": method, "q_star": paired.q_star.iloc[0], "cost": paired.cost.iloc[0],
+                "topics": len(paired), "mean_utility_delta_vs_greedy": float(delta.mean()),
+                "se_utility_delta_vs_greedy": float(delta.std(ddof=1) / np.sqrt(len(delta))),
+                "win_rate_vs_greedy": float((delta > 0.0).mean()),
+                "mean_depth_delta_vs_greedy": float((paired.stop_depth - paired.stop_depth_greedy).mean()),
+            })
+        pd.DataFrame(comparisons).to_csv(args.output_dir / "paired_vs_greedy.csv", index=False)
     metadata = {
         "gflowstop_revision": subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip(),
         "gflowstop_dirty": bool(subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True, check=True).stdout.strip()),
@@ -144,6 +184,9 @@ def main(argv: list[str] | None = None) -> None:
         "q_stars": args.q_stars, "costs": args.costs,
         "score_mean_prior": "one-feature logistic prior fit on training worlds",
         "zero_inflated_model": "rank-latent relevance fit on positive training topics plus structural zero mass",
+        "greedy_script": None if not args.greedy_script else str(args.greedy_script.resolve()),
+        "greedy_script_sha256": None if not args.greedy_script else _sha256(args.greedy_script),
+        "greedy_probability_column": args.greedy_probability_column if args.greedy_script else None,
     }
     (args.output_dir / "metadata.json").write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
 
