@@ -142,6 +142,7 @@ def test_zero_inflated_k1_rank_bellman_matches_exact_oracle_on_miss_path():
         history = (0,) * depth
         assert plan.actions[depth] == oracle.action(history)
         assert np.allclose(plan.values[depth], oracle.q_values[history], atol=1e-10)
+    assert zero_inflated_k1_rank_bellman(model, root, 1.0, q_star, cost).actions[0] == ACTION_REJECT
 
 
 def test_rank_score_ablation_separates_mean_and_local_features():

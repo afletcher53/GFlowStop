@@ -656,8 +656,8 @@ def zero_inflated_k1_rank_bellman(
     model: RankLatentBelief, observation: PolicyObservation, zero_mass: float, q_star: float, cost: float,
 ) -> K1RankPlan:
     """Exact K=1 planner with a structural all-zero-topic mixture component."""
-    if not 0.0 <= zero_mass < 1.0:
-        raise ValueError("zero_mass must be in [0, 1)")
+    if not 0.0 <= zero_mass <= 1.0:
+        raise ValueError("zero_mass must be in [0, 1]")
     if observation.threshold != 1 or observation.depth != 0 or observation.hits != 0:
         raise ValueError("K=1 planning starts before screening with no observed hits")
     positive_probabilities = model._probability_matrix(observation)
