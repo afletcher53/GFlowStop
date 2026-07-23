@@ -192,7 +192,8 @@ sparse_recall,sparse_recall,"r=5,gamma=2.0",Consecutive-miss-20,0.9,0.05,False,2
   },
   "D_planner": {
     "status": "pass",
-    "full_lookahead_high_gap_agreement": 1.0
+    "full_lookahead_high_gap_agreement": 1.0,
+    "rank_exact_test": "pytest test_rank_belief_full_horizon_matches_exact_oracle"
   },
   "E_recall": {
     "status": "pass",

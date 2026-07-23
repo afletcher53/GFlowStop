@@ -10,9 +10,9 @@
   "fixed_data": "data/toys",
   "utility_objective": "terminal threshold decision minus c*depth",
   "recall_objective": "minimise unique reviewed documents subject to target-recall failure control",
-  "git_revision": "dca25bd9f8c1ab1f695ac2279f2b8b7a229732a3",
+  "git_revision": "6b20824180aa8647d21edf690c26c81c0a563b9b",
   "git_dirty": false,
   "toys_py_sha256": "122f8efd52e734ed6e85c19515735b441fd25971dc55ff8e1e22445b04f92cba",
-  "toy_experiment_py_sha256": "afa183ec14a76b8c87c42c2bbd7ae96d6fdf3c9b239905d5349ee44f1ea3a7e1",
+  "toy_experiment_py_sha256": "a862a21a0dee6ff1541784ee5dc7e0b52406838a8402cfac481eaa3156217011",
   "data_manifest_sha256": "720a7e4920d9bb266fedbf49244faf3aa4a8bbd86b5f19720ec66c944480b48f"
 }
