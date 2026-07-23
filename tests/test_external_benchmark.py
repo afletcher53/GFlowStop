@@ -6,6 +6,8 @@ import pandas as pd
 from pyarrow import Table, ipc
 
 from gflowstop.external_benchmark import _checkpoints, _published_repke_run, _recall_probability, evaluate_repke_rankings, load_repke_rankings, repke_ranking_from_frame
+from gflowstop.external_utility import evaluate_k1_split, fit_score_mean_prior
+from gflowstop.toys import Episode
 
 
 def _ranking(dataset: str, repeat: int, labels: list[int]):
@@ -82,3 +84,28 @@ def test_repke_checkpoints_match_framework_batch_boundaries():
     # RankedDataset.bounds(batch_size=15) rounds an evenly spaced partition.
     # Literal 15-document checks would add an illegal checkpoint at 30 here.
     assert _checkpoints(31, 15) == (15, 31)
+
+
+def test_score_mean_prior_is_fitted_only_from_training_worlds():
+    train = [
+        Episode(np.array([1]), np.array([10.0]), {}, "test", 1),
+        Episode(np.array([1]), np.array([9.0]), {}, "test", 2),
+        Episode(np.array([0]), np.array([-9.0]), {}, "test", 3),
+        Episode(np.array([0]), np.array([-10.0]), {}, "test", 4),
+    ]
+    prior = fit_score_mean_prior(train)
+    assert prior.predict(np.array([8.0])) > prior.predict(np.array([-8.0]))
+
+
+def test_k1_utility_summary_scores_rejection_as_correct_for_zero_worlds():
+    train = [
+        Episode(np.array([1]), np.array([10.0]), {}, "test", 1),
+        Episode(np.array([1]), np.array([9.0]), {}, "test", 2),
+        Episode(np.array([0]), np.array([-9.0]), {}, "test", 3),
+        Episode(np.array([0]), np.array([-10.0]), {}, "test", 4),
+    ]
+    per_topic, summary = evaluate_k1_split(train, train, (0.5,), (0.1,))
+    expected = per_topic.groupby("method").apply(
+        lambda rows: (rows.action == np.where(rows.world, 1, 2)).mean(), include_groups=False,
+    )
+    assert np.allclose(summary.set_index("method").decision_accuracy.sort_index(), expected.sort_index())
