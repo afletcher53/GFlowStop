@@ -602,15 +602,18 @@ class RankLatentBelief:
         return float(((np.arange(len(distribution)) - mean) ** 2) @ distribution)
 
 
-def _synthetic_observation(observation: PolicyObservation, depth: int, hits: int) -> PolicyObservation:
+def _synthetic_observation(observation: PolicyObservation, observed_label: int) -> PolicyObservation:
+    if observed_label not in (0, 1):
+        raise ValueError("observed_label must be binary")
     return PolicyObservation(
-        length=observation.length, depth=depth, hits=hits, threshold=observation.threshold,
-        scores=observation.scores, history=(1,) * hits + (0,) * (depth - hits),
+        length=observation.length, depth=observation.depth + 1, hits=observation.hits + observed_label,
+        threshold=observation.threshold, scores=observation.scores, history=observation.history + (observed_label,),
     )
 
 
 def rank_belief_action(
     model: RankLatentBelief, state: RankBeliefState, observation: PolicyObservation, q_star: float, cost: float, lookahead: int,
+    cache: dict[tuple[int, tuple[int, ...], bytes], tuple[float, np.ndarray]] | None = None,
 ) -> tuple[int, np.ndarray]:
     """Receding-horizon Bellman action over the belief state, with exact count tails at leaves."""
     if lookahead < 1:
@@ -629,16 +632,22 @@ def rank_belief_action(
         return values
 
     def recurse(current: RankBeliefState, current_observation: PolicyObservation) -> tuple[float, np.ndarray]:
+        key = (limit, current_observation.history, current.weights.tobytes())
+        if cache is not None and key in cache:
+            return cache[key]
         values = terminal_values(current, current_observation)
         forced = certificate_action(current_observation.hits, current_observation.depth, current_observation.length, current_observation.threshold)
         if forced is None and current_observation.depth < limit:
             probability = model.next_hit_probability(current, current_observation)
-            hit_observation = _synthetic_observation(current_observation, current_observation.depth + 1, current_observation.hits + 1)
-            miss_observation = _synthetic_observation(current_observation, current_observation.depth + 1, current_observation.hits)
+            hit_observation = _synthetic_observation(current_observation, 1)
+            miss_observation = _synthetic_observation(current_observation, 0)
             hit_state = model.update(current, current_observation, 1)
             miss_state = model.update(current, current_observation, 0)
             values[ACTION_CONTINUE] = -cost + probability * recurse(hit_state, hit_observation)[0] + (1.0 - probability) * recurse(miss_state, miss_observation)[0]
-        return float(values.max()), values
+        result = float(values.max()), values
+        if cache is not None:
+            cache[key] = result
+        return result
 
     values = recurse(state, observation)[1]
     return int(np.argmax(values)), values
@@ -648,10 +657,11 @@ def rollout_rank_belief(
     episode: Episode, model: RankLatentBelief, threshold: int, q_star: float, cost: float, lookahead: int,
 ) -> tuple[int, int, float]:
     state = model.initial_state(episode.observation(0, 0, threshold))
+    cache: dict[tuple[int, tuple[int, ...], bytes], tuple[float, np.ndarray]] = {}
     hits = 0
     for depth in range(len(episode.labels) + 1):
         observation = episode.observation(depth, hits, threshold)
-        action, _values = rank_belief_action(model, state, observation, q_star, cost, lookahead)
+        action, _values = rank_belief_action(model, state, observation, q_star, cost, lookahead, cache)
         belief = model.world_probability(state, observation)
         if action != ACTION_CONTINUE:
             return depth, action, belief

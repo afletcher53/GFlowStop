@@ -6,10 +6,14 @@ from gflowstop.core import ACTION_CONTINUE, CountModel, count_bellman_teacher
 from gflowstop.toys import (
     ExactOracle,
     PerfectInformationEnvironment,
+    RankDecayEnvironment,
+    RankLatentBelief,
     beta_binomial_sequence_distribution,
     delayed_sequence_distribution,
     hindsight_flow_action,
     independent_sequence_distribution,
+    rank_belief_action,
+    sample_episodes,
 )
 from gflowstop.toy_experiment import _qbcb_j
 
@@ -51,3 +55,17 @@ def test_qbcb_order_statistic_has_the_requested_binomial_failure_bound():
     failure = sum(comb(positives, count) * target**count * (1.0 - target) ** (positives - count) for count in range(order, positives + 1))
     assert order == 30
     assert failure <= alpha
+
+
+def test_rank_planner_reuses_full_horizon_child_values():
+    episodes = sample_episodes(RankDecayEnvironment(1.5, 1.0, 0.5, mu=1.0), 4, 4, seed=7)
+    model = RankLatentBelief().fit(episodes[:3])
+    observation = episodes[3].observation(0, 0, threshold=2)
+    state = model.initial_state(observation)
+    cache = {}
+    rank_belief_action(model, state, observation, q_star=0.5, cost=0.02, lookahead=4, cache=cache)
+    size = len(cache)
+    child = episodes[3].observation(1, int(episodes[3].labels[0]), threshold=2)
+    child_state = model.update(state, observation, int(episodes[3].labels[0]))
+    rank_belief_action(model, child_state, child, q_star=0.5, cost=0.02, lookahead=4, cache=cache)
+    assert len(cache) == size
