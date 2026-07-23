@@ -15,7 +15,7 @@ from gflowstop.toys import (
     rank_belief_action,
     sample_episodes,
 )
-from gflowstop.toy_experiment import _qbcb_j
+from gflowstop.toy_experiment import _failure_ucb, _qbcb_j
 
 
 def test_hindsight_flow_target_is_not_bayes_optimal():
@@ -55,6 +55,10 @@ def test_qbcb_order_statistic_has_the_requested_binomial_failure_bound():
     failure = sum(comb(positives, count) * target**count * (1.0 - target) ** (positives - count) for count in range(order, positives + 1))
     assert order == 30
     assert failure <= alpha
+
+
+def test_zero_failure_ucb_is_not_zero():
+    assert np.isclose(_failure_ucb(0, 10_000), 1.0 - 0.05 ** (1.0 / 10_000))
 
 
 def test_rank_planner_reuses_full_horizon_child_values():
