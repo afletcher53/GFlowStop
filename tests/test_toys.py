@@ -6,6 +6,7 @@ from gflowstop.core import ACTION_ACCEPT, ACTION_CONTINUE, ACTION_REJECT, CountM
 from gflowstop.toys import (
     ExactOracle,
     Episode,
+    K1RankPlan,
     PerfectInformationEnvironment,
     RankDecayEnvironment,
     RankLatentBelief,
@@ -14,6 +15,7 @@ from gflowstop.toys import (
     delayed_sequence_distribution,
     hindsight_flow_action,
     independent_sequence_distribution,
+    k1_rank_bellman,
     mixture_sequence_distribution,
     rank_belief_action,
     sample_episodes,
@@ -100,6 +102,26 @@ def test_rank_belief_full_horizon_matches_exact_oracle():
             observation = PolicyObservation(length, observation.depth + 1, observation.hits + label, threshold, scores, observation.history + (label,))
         _action, values = rank_belief_action(model, state, observation, q_star, cost, lookahead=length)
         assert np.allclose(values, exact_values, atol=1e-10)
+
+
+def test_k1_rank_bellman_matches_full_history_planner_on_miss_path():
+    length, q_star, cost = 7, 0.4, 0.03
+    model = RankLatentBelief(rank_edges=tuple(np.linspace(0.0, 1.0, length + 1)), use_scores=False, eta_points=3)
+    model.rank_logits = np.linspace(-1.0, -2.0, length)
+    model.etas = np.array((-0.6, 0.0, 0.7))
+    model.prior = np.array((0.2, 0.5, 0.3))
+    model._probability_cache = model._tail_cache = None
+    root = PolicyObservation(length, 0, 0, 1, np.zeros(length), ())
+    plan = k1_rank_bellman(model, root, q_star, cost)
+    state = model.initial_state(root)
+    for depth in range(length + 1):
+        observation = PolicyObservation(length, depth, 0, 1, root.scores, (0,) * depth)
+        action, values = rank_belief_action(model, state, observation, q_star, cost, lookahead=length)
+        assert isinstance(plan, K1RankPlan)
+        assert plan.actions[depth] == action
+        assert np.allclose(plan.values[depth], values, atol=1e-10)
+        if depth < length:
+            state = model.update(state, observation, 0)
 
 
 def test_rank_score_ablation_separates_mean_and_local_features():
