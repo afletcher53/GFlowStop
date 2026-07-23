@@ -19,6 +19,8 @@
     "gamma_1_5_mean_utility": {
       "Count-Bellman-fitted": 0.10948000000000001,
       "Rank-only-full": 0.14856,
+      "Rank-score-local-full": 0.14765999999999999,
+      "Rank-score-mean-full": 0.15828,
       "Rank-score-real-full": 0.15775999999999998,
       "Rank-score-shuffled-across-full": 0.1475,
       "Rank-score-shuffled-within-full": 0.15824000000000002,
@@ -30,6 +32,16 @@
         "brier": 0.15286407324625695,
         "log_loss": 0.4719767299396135,
         "ece": 0.03198634731278307
+      },
+      "Rank-score-mean": {
+        "brier": 0.14425656257459754,
+        "log_loss": 0.4510434506999951,
+        "ece": 0.04568136439233675
+      },
+      "Rank-score-local": {
+        "brier": 0.15242949955069537,
+        "log_loss": 0.4701423458669895,
+        "ece": 0.029411339006937078
       },
       "Rank-score-real": {
         "brier": 0.14385710042003844,
