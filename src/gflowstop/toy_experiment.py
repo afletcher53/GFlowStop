@@ -626,7 +626,8 @@ def _gates(utility_rows: pd.DataFrame, recall_rows: pd.DataFrame, diagnostics: p
                            "true_oracle_regret_reduction_vs_count": rank_reduction,
                            "next_hit_calibration": rank_diagnostics[["brier", "log_loss", "ece"]].to_dict(orient="index") if len(rank_diagnostics) else {}},
         "D_planner": {"status": "pass" if len(full_planner) and float(full_planner.high_gap_action_agreement.iloc[0]) > 0.95 else "fail",
-                        "full_lookahead_high_gap_agreement": float(full_planner.high_gap_action_agreement.iloc[0]) if len(full_planner) else None},
+                        "full_lookahead_high_gap_agreement": float(full_planner.high_gap_action_agreement.iloc[0]) if len(full_planner) else None,
+                        "rank_exact_test": "pytest test_rank_belief_full_horizon_matches_exact_oracle"},
         "E_recall": {"status": "pass" if len(safety_frame) and bool((safety_frame.ucb_excess <= 0.01).all()) else "fail",
                      "one_sided_confidence": 0.95, "tolerance": 0.01, "worst_cell_by_method": worst_safety},
     }

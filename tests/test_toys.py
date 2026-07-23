@@ -8,10 +8,12 @@ from gflowstop.toys import (
     PerfectInformationEnvironment,
     RankDecayEnvironment,
     RankLatentBelief,
+    PolicyObservation,
     beta_binomial_sequence_distribution,
     delayed_sequence_distribution,
     hindsight_flow_action,
     independent_sequence_distribution,
+    mixture_sequence_distribution,
     rank_belief_action,
     sample_episodes,
 )
@@ -76,3 +78,24 @@ def test_rank_planner_reuses_full_horizon_child_values():
     child_state = model.update(state, observation, int(episodes[3].labels[0]))
     rank_belief_action(model, child_state, child, q_star=0.5, cost=0.02, lookahead=4, cache=cache)
     assert len(cache) == size
+
+
+def test_rank_belief_full_horizon_matches_exact_oracle():
+    length, threshold, q_star, cost = 8, 3, 0.4, 0.03
+    model = RankLatentBelief(rank_edges=tuple(np.linspace(0.0, 1.0, length + 1)), use_scores=False, eta_points=3)
+    model.rank_logits = np.linspace(-0.8, -2.2, length)
+    model.etas = np.array((-0.7, 0.0, 0.8))
+    model.prior = np.array((0.2, 0.5, 0.3))
+    model._probability_cache = model._tail_cache = None
+    scores = np.zeros(length)
+    root = PolicyObservation(length, 0, 0, threshold, scores, ())
+    sequences, probabilities = mixture_sequence_distribution(model._probability_matrix(root), model.prior)
+    oracle = ExactOracle(sequences, probabilities, threshold, q_star, cost)
+    for history, exact_values in oracle.q_values.items():
+        state = model.initial_state(root)
+        observation = root
+        for label in history:
+            state = model.update(state, observation, label)
+            observation = PolicyObservation(length, observation.depth + 1, observation.hits + label, threshold, scores, observation.history + (label,))
+        _action, values = rank_belief_action(model, state, observation, q_star, cost, lookahead=length)
+        assert np.allclose(values, exact_values, atol=1e-10)
