@@ -1,0 +1,3 @@
+method,q_star,cost,topics,mean_utility_delta_vs_greedy,se_utility_delta_vs_greedy,win_rate_vs_greedy,mean_depth_delta_vs_greedy
+zero_inflated_rank,0.5,0.01,1000,-0.03556,0.006164372302666824,0.1,6.306
+zero_inflated_score_mean,0.5,0.01,1000,0.07046000000000001,0.005660461927195451,0.818,-1.096

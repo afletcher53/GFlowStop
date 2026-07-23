@@ -138,17 +138,49 @@ Repke's collections are appropriate for Track R but do not define a common
 downstream decision world. They must not be coerced into the count-threshold
 utility score for a headline comparison.
 
-The first Track-U external tasks are instead:
+### Constructed CLEF-IP K=1 diagnostic
 
-1. CLEF-IP, with a fixed `(K=1)` prior-art decision and the published payoff,
-   cost, ranking, calibration, and topic split;
-2. DTA outcomes, with the adoption/reject decision defined by the cumulative
-   evidence posterior and its published outcome split.
+The repository includes one deliberately narrow, non-promoted Track-U screen
+from the local `PatentSearch` checkout. Its `omega_combined` split has 1,000
+topics in each partition: 500 original positive CLEF-IP topics and 500
+`OMEGAN_` corpus-sampled structural-zero controls. It is a constructed mixed
+screening split, not natural external negative-world evidence.
 
-Those adapters are intentionally not present yet: each needs its task-specific
-observation model and a frozen source-data/ranking manifest. The generic
+`python -m gflowstop.external_utility` fits the rank-latent model only on the
+positive training topics and adds a structural-zero component. Its exact K=1
+Bellman solver is valid along the only nonterminal history (a run of misses).
+The optional score-mean variant learns a one-feature world prior solely from
+training topics. When `--greedy-script` is supplied, it calls the external
+project's `simulate_topic(..., policy="greedy")` directly and records a
+per-topic paired comparison.
+
+The first matched run uses `q*=0.5`, `c=0.01`, 1,000 fixed test topics, and
+the source CSV hashes in
+`results/external/clefip_k1_matched/metadata.json`. GFlowStop source was clean
+at `bc9b1c68899fa1b473be793e0d6fe5a214304227`. The external checkout was at
+`9e1320fcb60217a233d7272170396251408af0f3` but dirty; the directly called
+Greedy source has SHA-256
+`02dfd36c209eb9cade6da22705f4e6166b8c8713bd97ccd658120198aca404f7`.
+
+| Method | Mean utility | SE | Mean depth | Paired utility difference vs Greedy | SE | Decision accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Direct external Greedy | 0.17137 | 0.00529 | 1.363 | -- | -- | 0.870 |
+| Zero-inflated rank | 0.13581 | 0.00483 | 7.669 | -0.03556 | 0.00616 | 0.925 |
+| Zero-inflated score mean | 0.24183 | 0.00171 | 0.267 | +0.07046 | 0.00566 | 0.989 |
+
+The score-mean result is **not a breakthrough claim**. Its root-world AUC is
+`0.99907`, and only 4% of test topics continue: raw mean BM25 scores nearly
+identify which half of this constructed split consists of corpus-sampled
+zero controls. The rank-only model is the relevant model-repair result here,
+and it loses to direct Greedy. This experiment is retained as a leakage and
+external-validity diagnostic, not as evidence of non-myopic planning or
+real-data generalisation.
+
+The next valid Track-U tasks remain CLEF-IP with a published natural
+prior-art split and DTA outcomes with their cumulative-evidence decision.
+Each needs a frozen task-specific source-data/ranking manifest. The generic
 Repke loader is reusable for fixed ranking provenance, but it is not a
-substitute for the task definition.
+substitute for the decision world.
 
 ## Promotion gates
 
@@ -167,8 +199,8 @@ No external claim is promoted until all of these hold:
 6. Any Track-U result uses the task's own downstream utility and is reported
    separately from recall safety.
 
-The recall branch is frozen at this negative result. The next experimental
-branch is Track U: freeze a CLEF-IP or DTA task-specific input manifest before
-building its observation model. A new recall-policy variant requires a
-predeclared calibration mechanism and a fresh held-out benchmark, not another
-threshold sweep on these 217 runs.
+The recall branch is frozen at this negative result. The constructed CLEF-IP
+screen is also frozen as a diagnostic. The next experimental branch is a
+natural Track-U task with a task-specific input manifest. A new recall-policy
+variant requires a predeclared calibration mechanism and a fresh held-out
+benchmark, not another threshold sweep on these 217 runs.

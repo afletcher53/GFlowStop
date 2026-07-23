@@ -1,0 +1,22 @@
+{
+  "costs": [
+    0.01
+  ],
+  "gflowstop_dirty": false,
+  "gflowstop_revision": "bc9b1c68899fa1b473be793e0d6fe5a214304227",
+  "greedy_probability_column": "prob_iso_z",
+  "greedy_script": "/home/aaron/Desktop/Proj/Utility Based Stopping/PatentSearch/src/stopping_algorithms/approaches/event_based_stopping.py",
+  "greedy_script_sha256": "02dfd36c209eb9cade6da22705f4e6166b8c8713bd97ccd658120198aca404f7",
+  "q_stars": [
+    0.5
+  ],
+  "score_mean_prior": "one-feature logistic prior fit on training worlds",
+  "source_dirty": true,
+  "source_revision": "9e1320fcb60217a233d7272170396251408af0f3",
+  "source_root": "/home/aaron/Desktop/Proj/Utility Based Stopping/PatentSearch",
+  "test_csv": "/home/aaron/Desktop/Proj/Utility Based Stopping/PatentSearch/data/processed/datasets/omega_combined/omega_combined_TEST_with_probs.csv",
+  "test_sha256": "0a299c9926e883c5ead98e069c5b400ec653dcc76683773a6be0a97c2d6ddcf2",
+  "train_csv": "/home/aaron/Desktop/Proj/Utility Based Stopping/PatentSearch/data/processed/datasets/omega_combined/omega_combined_TRAINING_with_probs.csv",
+  "train_sha256": "6942c9d4306f4f90d6218d5758a11e3ef5e9aa655f462c7f23e9b1a9b36579f0",
+  "zero_inflated_model": "rank-latent relevance fit on positive training topics plus structural zero mass"
+}

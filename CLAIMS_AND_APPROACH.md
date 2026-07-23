@@ -194,3 +194,15 @@ aggregate confidence level. The optional local-score ablation degrades safety.
 This freezes the current recall-policy line as a negative result; no real-data
 superiority or recall-certification claim follows. Its approximation,
 provenance, and remaining Track-U gate are in `EXTERNAL_BENCHMARK.md`.
+
+The first Track-U external diagnostic is a constructed CLEF-IP K=1 mixed
+split: each partition combines 500 positive CLEF-IP topics with 500
+corpus-sampled structural-zero controls. The exact zero-inflated rank planner
+has mean utility `0.13581`, below the directly called external Greedy policy's
+`0.17137` (paired difference `-0.03556`, SE `0.00616`). A score-mean prior
+reaches `0.24183`, but its root-world AUC is `0.99907` and it continues on
+only 4% of topics. That gain is a construction-signature diagnostic: raw
+mean BM25 scores identify the generated controls. It is not evidence of
+planning, natural negative-world generalisation, or superiority over the
+published decision-theoretic work. The exact K=1 solver is validated; the
+external claim remains unpromoted.

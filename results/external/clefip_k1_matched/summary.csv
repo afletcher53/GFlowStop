@@ -1,0 +1,3 @@
+method,q_star,cost,topics,mean_net_utility,se_net_utility,mean_stop_depth,decision_accuracy,mean_root_world_probability,train_zero_mass,score_mean_prior_coefficients
+zero_inflated_rank,0.5,0.01,1000,0.13581000000000001,0.004828546236576674,7.669,0.925,0.4944044113482771,0.5,"[-0.6410645738389501, -3.7354936257183593]"
+zero_inflated_score_mean,0.5,0.01,1000,0.24183000000000002,0.0017129755939257819,0.267,0.989,0.49606180547273143,0.5,"[-0.6410645738389501, -3.7354936257183593]"
