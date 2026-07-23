@@ -649,10 +649,35 @@ def k1_rank_bellman(
         raise ValueError("K=1 planning starts before screening with no observed hits")
     if not 0.0 < q_star < 1.0 or cost < 0.0:
         raise ValueError("invalid utility parameters")
-    probabilities = model._probability_matrix(observation)
-    length, states = observation.length, len(probabilities)
+    return _k1_plan(model._probability_matrix(observation), model.initial_state(observation).weights, q_star, cost)
+
+
+def zero_inflated_k1_rank_bellman(
+    model: RankLatentBelief, observation: PolicyObservation, zero_mass: float, q_star: float, cost: float,
+) -> K1RankPlan:
+    """Exact K=1 planner with a structural all-zero-topic mixture component."""
+    if not 0.0 <= zero_mass < 1.0:
+        raise ValueError("zero_mass must be in [0, 1)")
+    if observation.threshold != 1 or observation.depth != 0 or observation.hits != 0:
+        raise ValueError("K=1 planning starts before screening with no observed hits")
+    positive_probabilities = model._probability_matrix(observation)
+    probabilities = np.vstack((np.zeros((1, observation.length)), positive_probabilities))
+    weights = np.r_[zero_mass, (1.0 - zero_mass) * model.initial_state(observation).weights]
+    return _k1_plan(probabilities, weights, q_star, cost)
+
+
+def _k1_plan(probabilities: np.ndarray, initial_weights: np.ndarray, q_star: float, cost: float) -> K1RankPlan:
+    probabilities = np.asarray(probabilities, dtype=float)
+    initial_weights = np.asarray(initial_weights, dtype=float)
+    if probabilities.ndim != 2 or len(initial_weights) != len(probabilities):
+        raise ValueError("K=1 probabilities and weights disagree")
+    if not np.isclose(initial_weights.sum(), 1.0):
+        raise ValueError("K=1 initial weights must sum to one")
+    length, states = probabilities.shape[1], len(probabilities)
+    if not 0.0 < q_star < 1.0 or cost < 0.0:
+        raise ValueError("invalid utility parameters")
     weights = np.empty((length + 1, states))
-    weights[0] = model.initial_state(observation).weights
+    weights[0] = initial_weights
     for depth in range(length):
         weights[depth + 1] = weights[depth] * (1.0 - probabilities[:, depth])
         weights[depth + 1] /= weights[depth + 1].sum()
