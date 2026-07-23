@@ -185,8 +185,9 @@ promotion gates.
    approximation and training objectives. Real collections come after those
    synthetic gates, not before.
 
-An external target-recall adapter now exists for Repke et al.'s fixed ranking
-files, but it has not yet been run on the public archive. Its approximation,
-cross-fitting protocol, and required external gates are described in
-`EXTERNAL_BENCHMARK.md`; no external performance claim follows from the
-adapter alone.
+The Repke external target-recall adapter has now completed one predeclared
+rank-only screen on the released 81-dataset-ID subset. It fails badly at 80%
+recall; aggregate 90% and 95% results are not a safety promotion because the
+release has only one to three runs per dataset and no matched baseline has yet
+been reproduced. Its approximation, provenance, and required external gates
+are in `EXTERNAL_BENCHMARK.md`; no real-data superiority claim follows.
