@@ -1,0 +1,5 @@
+method,states,high_gap_action_agreement,mean_planning_regret,maximum_planning_regret
+Exact-lookahead-1,152,0.6842105263157895,0.016387259800086127,0.08251014492753617
+Exact-lookahead-10,152,1.0,0.0,0.0
+Exact-lookahead-2,152,0.8486842105263158,0.003458861725211234,0.02500676328502416
+Exact-lookahead-5,152,1.0,0.0,0.0

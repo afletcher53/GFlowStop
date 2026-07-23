@@ -1,0 +1,14 @@
+{
+  "config": {
+    "seed": 20260722,
+    "train_episodes": 1000,
+    "test_episodes": 1000,
+    "recall_episodes": 10000,
+    "bootstrap_replicates": 2000,
+    "quick": false
+  },
+  "fixed_data": "data/toys",
+  "utility_objective": "terminal threshold decision minus c*depth",
+  "recall_objective": "minimise unique reviewed documents subject to target-recall failure control",
+  "git_revision": "fe220ba660059142f579c085de0b526c383f4838"
+}

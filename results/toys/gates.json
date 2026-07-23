@@ -1,0 +1,55 @@
+{
+  "A_oracle_correctness": {
+    "perfect_information_test": "pytest test_hindsight_flow_target_is_not_bayes_optimal",
+    "status": "pass"
+  },
+  "B_matched_model": {
+    "status": "reported",
+    "note": "compare true and fitted Count-Bellman learning curve; no post-test tuning"
+  },
+  "C_rank_aware": {
+    "status": "reported",
+    "gamma_1_5_mean_utility": {
+      "Count-Bellman-fitted": 0.10948000000000001,
+      "Rank-only-full": 0.14856,
+      "Rank-score-real-full": 0.15775999999999998,
+      "Rank-score-shuffled-across-full": 0.1475,
+      "Rank-score-shuffled-within-full": 0.15824000000000002,
+      "True-rank-oracle": 0.17586
+    },
+    "next_hit_calibration": {
+      "Rank-only": {
+        "brier": 0.15286407324625695,
+        "log_loss": 0.4719767299396135,
+        "ece": 0.03198634731278307
+      },
+      "Rank-score-real": {
+        "brier": 0.14385710042003844,
+        "log_loss": 0.4492835228371562,
+        "ece": 0.04189588077641967
+      },
+      "Rank-score-shuffled-within": {
+        "brier": 0.14426154094456214,
+        "log_loss": 0.45104257567775585,
+        "ece": 0.044412196743429125
+      },
+      "Rank-score-shuffled-across": {
+        "brier": 0.15251698218675033,
+        "log_loss": 0.47142872441587025,
+        "ece": 0.02258432120854458
+      }
+    }
+  },
+  "D_planner": {
+    "status": "reported",
+    "note": "small-POMDP rows separate full and truncated exact planning"
+  },
+  "E_recall": {
+    "status": "reported",
+    "claimed_safety_upper_failure": {
+      "Full-screen": 0.0,
+      "QBCB": 0.00814516129032258,
+      "Sequential-hypergeometric": 0.0
+    }
+  }
+}

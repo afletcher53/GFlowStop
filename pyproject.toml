@@ -11,10 +11,12 @@ dependencies = [
     "numpy>=1.26",
     "pandas>=2.1",
     "python-terrier>=1.0",
+    "scipy>=1.11",
 ]
 
 [project.scripts]
 amortized-stopping = "gflowstop.experiment:main"
+amortized-stopping-toys = "gflowstop.toy_experiment:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

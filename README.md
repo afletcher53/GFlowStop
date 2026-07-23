@@ -17,6 +17,19 @@ uv pip install --python .venv/bin/python -e . pytest
 
 Outputs are `per_topic.csv`, `summary.csv`, `statistics.json`, `splits.json`, `metadata.json`, and `report.md`. Direct net utility is primary. The reported full-information gap is only an upper-bound comparison, not a hindsight stopping oracle.
 
+## Synthetic benchmark
+
+The toy benchmark is the primary validation path. It separates two non-interchangeable tasks:
+
+- Track U: terminal threshold-decision utility minus per-document cost.
+- Track R: minimise unique reviewed documents subject to a target-recall failure bound.
+
+```bash
+.venv/bin/python -m gflowstop.toy_experiment
+```
+
+This writes fixed episodes (labels, scores, generator parameters, and seeds) to `data/toys/`, and condition-level utility, planner, calibration, and recall results to `results/toys/`. It runs the perfect-information hindsight-target regression, beta-binomial oracle/learning curve, rank decay and score-shuffle ablations, delayed-information planning ladder, clustered and shifted stress tests, and target-recall safety/effort comparisons. QBCB and the alpha-spending hypergeometric rule are kept in the recall track; estimator and point-process rules are reported as empirical comparators, not certificates.
+
 ## Scope
 
-The exact beta-binomial teacher is the coherent chain baseline. A rank-aware hierarchical count model, additional fully judged collections, and any evidence-set GFlowNet belong in separate follow-up experiments; the current fixed chain has no reward-proportional flow objective.
+The exact beta-binomial teacher is the coherent chain baseline. The toy suite adds a rank-aware latent belief planner; its results must pass the listed synthetic gates before Vaswani or other real collections are used as evidence. A fixed chain still has no reward-proportional flow objective: an evidence-set GFlowNet remains a separate research branch, not a relabeling of hindsight targets.
