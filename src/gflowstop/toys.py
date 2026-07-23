@@ -619,6 +619,32 @@ def rank_belief_action(
     if lookahead < 1:
         raise ValueError("lookahead must be positive")
     limit = min(observation.length, observation.depth + lookahead)
+    root_key = (limit, observation.history, state.weights.tobytes())
+    if cache is not None and root_key in cache:
+        values = cache[root_key][1]
+        return int(np.argmax(values)), values
+    probabilities = model._probability_matrix(observation)
+    tails: list[np.ndarray] = []
+    for depth in range(observation.length + 1):
+        tail = np.empty((len(probabilities), observation.length - depth + 1))
+        for index, row in enumerate(probabilities):
+            distribution = np.array([1.0])
+            for probability in row[depth:]:
+                distribution = np.convolve(distribution, np.array((1.0 - probability, probability)))
+            tail[index] = distribution
+        tails.append(tail)
+
+    def world_probability(current: RankBeliefState, current_observation: PolicyObservation) -> float:
+        needed = current_observation.threshold - current_observation.hits
+        if needed <= 0:
+            return 1.0
+        distribution = current.weights @ tails[current_observation.depth]
+        return 0.0 if needed >= len(distribution) else float(distribution[needed:].sum())
+
+    def update(current: RankBeliefState, current_observation: PolicyObservation, observed_label: int) -> RankBeliefState:
+        probability = probabilities[:, current_observation.depth]
+        weights = current.weights * (probability if observed_label else 1.0 - probability)
+        return RankBeliefState(weights / weights.sum())
 
     def terminal_values(current: RankBeliefState, current_observation: PolicyObservation) -> np.ndarray:
         values = np.full(3, -np.inf)
@@ -626,7 +652,7 @@ def rank_belief_action(
         if forced is not None:
             values[forced] = (1.0 - q_star) / 2.0 if forced == ACTION_ACCEPT else q_star / 2.0
             return values
-        belief = model.world_probability(current, current_observation)
+        belief = world_probability(current, current_observation)
         values[ACTION_ACCEPT] = (belief - q_star) / 2.0
         values[ACTION_REJECT] = (q_star - belief) / 2.0
         return values
@@ -638,11 +664,11 @@ def rank_belief_action(
         values = terminal_values(current, current_observation)
         forced = certificate_action(current_observation.hits, current_observation.depth, current_observation.length, current_observation.threshold)
         if forced is None and current_observation.depth < limit:
-            probability = model.next_hit_probability(current, current_observation)
+            probability = float(current.weights @ probabilities[:, current_observation.depth])
             hit_observation = _synthetic_observation(current_observation, 1)
             miss_observation = _synthetic_observation(current_observation, 0)
-            hit_state = model.update(current, current_observation, 1)
-            miss_state = model.update(current, current_observation, 0)
+            hit_state = update(current, current_observation, 1)
+            miss_state = update(current, current_observation, 0)
             values[ACTION_CONTINUE] = -cost + probability * recurse(hit_state, hit_observation)[0] + (1.0 - probability) * recurse(miss_state, miss_observation)[0]
         result = float(values.max()), values
         if cache is not None:
