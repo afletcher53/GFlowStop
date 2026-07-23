@@ -502,6 +502,8 @@ class RankLatentBelief:
     def fit(self, episodes: list[Episode]) -> "RankLatentBelief":
         if not episodes:
             raise ValueError("at least one training episode is required")
+        self._probability_cache = None
+        self._tail_cache = None
         bins = len(self.rank_edges) - 1
         hit_counts, totals = np.zeros(bins), np.zeros(bins)
         design, labels, offsets = [], [], []
@@ -541,16 +543,44 @@ class RankLatentBelief:
         self.prior = prior / prior.sum()
         return self
 
+    def _observation_key(self, observation: PolicyObservation) -> tuple[int, bytes]:
+        return observation.length, b"" if not self.use_scores else observation.scores.tobytes()
+
     def _probability_matrix(self, observation: PolicyObservation) -> np.ndarray:
         if not hasattr(self, "rank_logits"):
             raise RuntimeError("fit the belief model before using it")
+        key = self._observation_key(observation)
+        cached = self._probability_cache
+        if cached is not None and cached[0] == key:
+            return cached[1]
         fractions = (np.arange(observation.length) + 0.5) / observation.length
         score, slope = self._score_features(observation.scores)
         x = np.c_[np.ones(observation.length), score, slope, score * fractions]
         fixed = self.rank_logits[self._bin(fractions)]
         if self.use_scores:
             fixed = fixed + x @ self.score_weights
-        return np.asarray(_expit(fixed[None, :] + self.etas[:, None]), dtype=float)
+        matrix = np.asarray(_expit(fixed[None, :] + self.etas[:, None]), dtype=float)
+        self._probability_cache = key, matrix
+        return matrix
+
+    def _tail_distributions(self, observation: PolicyObservation) -> tuple[np.ndarray, ...]:
+        key = self._observation_key(observation)
+        cached = self._tail_cache
+        if cached is not None and cached[0] == key:
+            return cached[1]
+        matrix = self._probability_matrix(observation)
+        tails = []
+        for depth in range(observation.length + 1):
+            tail = np.empty((len(matrix), observation.length - depth + 1))
+            for index, probabilities in enumerate(matrix):
+                distribution = np.array([1.0])
+                for probability in probabilities[depth:]:
+                    distribution = np.convolve(distribution, np.array((1.0 - probability, probability)))
+                tail[index] = distribution
+            tails.append(tail)
+        result = tuple(tails)
+        self._tail_cache = key, result
+        return result
 
     def initial_state(self, observation: PolicyObservation) -> RankBeliefState:
         assert not hasattr(observation, "latent") and not hasattr(observation, "labels")
@@ -576,14 +606,7 @@ class RankLatentBelief:
         return float(state.weights @ probabilities)
 
     def remaining_distribution(self, state: RankBeliefState, observation: PolicyObservation) -> np.ndarray:
-        matrix = self._probability_matrix(observation)[:, observation.depth :]
-        mixture = np.zeros(matrix.shape[1] + 1)
-        for weight, probabilities in zip(state.weights, matrix, strict=True):
-            distribution = np.array([1.0])
-            for probability in probabilities:
-                distribution = np.convolve(distribution, np.array((1.0 - probability, probability)))
-            mixture += weight * distribution
-        return mixture / mixture.sum()
+        return state.weights @ self._tail_distributions(observation)[observation.depth]
 
     def world_probability(self, state: RankBeliefState, observation: PolicyObservation) -> float:
         needed = observation.threshold - observation.hits
@@ -624,15 +647,7 @@ def rank_belief_action(
         values = cache[root_key][1]
         return int(np.argmax(values)), values
     probabilities = model._probability_matrix(observation)
-    tails: list[np.ndarray] = []
-    for depth in range(observation.length + 1):
-        tail = np.empty((len(probabilities), observation.length - depth + 1))
-        for index, row in enumerate(probabilities):
-            distribution = np.array([1.0])
-            for probability in row[depth:]:
-                distribution = np.convolve(distribution, np.array((1.0 - probability, probability)))
-            tail[index] = distribution
-        tails.append(tail)
+    tails = model._tail_distributions(observation)
 
     def world_probability(current: RankBeliefState, current_observation: PolicyObservation) -> float:
         needed = current_observation.threshold - current_observation.hits
