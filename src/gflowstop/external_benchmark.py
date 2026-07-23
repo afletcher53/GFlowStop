@@ -19,6 +19,7 @@ from typing import Iterable
 
 import numpy as np
 import pandas as pd
+from pyarrow import ipc
 from scipy.special import ndtr
 from scipy.stats import beta
 
@@ -89,8 +90,20 @@ def repke_ranking_from_frame(info: dict, frame: pd.DataFrame, info_path: Path, r
     )
 
 
-def load_repke_rankings(ranking_dir: Path) -> list[ExternalRanking]:
-    """Read all matching ``*.json``/``*.feather`` simulation outputs."""
+def _published_repke_run(info: dict) -> bool:
+    """Select the 500-initial, 25--200 adaptive protocol reported by Repke et al."""
+    batch = (info.get("batches") or [{}])[0].get("params", {}).get("batch", {})
+    return (
+        batch.get("num_random_init") == 500
+        and batch.get("dyn_min_batch_incl") == 2
+        and batch.get("dyn_min_batch_size") == 25
+        and batch.get("dyn_max_batch_size") == 200
+        and batch.get("dyn_growth_rate") == 0.1
+    )
+
+
+def load_repke_rankings(ranking_dir: Path, published_only: bool = True) -> list[ExternalRanking]:
+    """Read matching ``*.json``/``*.feather`` simulations in their supplied order."""
     ranking_dir = Path(ranking_dir)
     rankings: list[ExternalRanking] = []
     for info_path in sorted(ranking_dir.glob("*.json")):
@@ -99,10 +112,10 @@ def load_repke_rankings(ranking_dir: Path) -> list[ExternalRanking]:
             continue
         with info_path.open() as handle:
             info = json.load(handle)
-        try:
-            frame = pd.read_feather(ranking_path)
-        except ImportError as error:  # pragma: no cover - depends on optional reader at runtime
-            raise RuntimeError("Repke Feather inputs require pyarrow; install the project dependencies") from error
+        if published_only and not _published_repke_run(info):
+            continue
+        with ranking_path.open("rb") as handle:
+            frame = ipc.open_file(handle).read_all().to_pandas()
         rankings.append(repke_ranking_from_frame(info, frame, info_path, ranking_path))
     if not rankings:
         raise FileNotFoundError(f"no paired Repke JSON/Feather rankings found in {ranking_dir}")
@@ -259,7 +272,7 @@ def evaluate_repke_rankings(
     rankings: list[ExternalRanking],
     targets: tuple[float, ...] = (0.8, 0.9, 0.95),
     alphas: tuple[float, ...] = (0.05, 0.10),
-    check_interval: int = 100,
+    check_interval: int = 15,
     folds: int = 5,
     include_local_scores: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -302,8 +315,9 @@ def run_repke(
     folds: int,
     include_local_scores: bool,
     framework_revision: str,
+    published_only: bool,
 ) -> None:
-    rankings = load_repke_rankings(ranking_dir)
+    rankings = load_repke_rankings(ranking_dir, published_only=published_only)
     trace, first_stops, summary = evaluate_repke_rankings(rankings, targets, alphas, check_interval, folds, include_local_scores)
     output_dir.mkdir(parents=True, exist_ok=True)
     trace.to_csv(output_dir / "repke_trace.csv", index=False)
@@ -325,6 +339,9 @@ def run_repke(
         "check_interval": check_interval,
         "folds": folds,
         "include_local_scores": include_local_scores,
+        "published_protocol_only": published_only,
+        "selected_rankings": len(rankings),
+        "selected_datasets": len({ranking.dataset for ranking in rankings}),
         "posterior_approximation": POSTERIOR_APPROXIMATION,
     }
     (output_dir / "metadata.json").write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
@@ -340,12 +357,13 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--output-dir", type=Path, default=Path("results/external/repke"))
     parser.add_argument("--targets", type=_float_tuple, default=(0.8, 0.9, 0.95))
     parser.add_argument("--alphas", type=_float_tuple, default=(0.05, 0.10))
-    parser.add_argument("--check-interval", type=int, default=100)
+    parser.add_argument("--check-interval", type=int, default=15)
     parser.add_argument("--folds", type=int, default=5)
     parser.add_argument("--include-local-scores", action="store_true")
+    parser.add_argument("--include-nonpublished-runs", action="store_true", help="include archive files outside the paper's 500-initial, 25--200 adaptive protocol")
     parser.add_argument("--framework-revision", required=True, help="commit that generated or evaluated the supplied rankings")
     args = parser.parse_args(argv)
-    run_repke(args.ranking_dir, args.output_dir, args.targets, args.alphas, args.check_interval, args.folds, args.include_local_scores, args.framework_revision)
+    run_repke(args.ranking_dir, args.output_dir, args.targets, args.alphas, args.check_interval, args.folds, args.include_local_scores, args.framework_revision, not args.include_nonpublished_runs)
 
 
 if __name__ == "__main__":

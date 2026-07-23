@@ -22,12 +22,15 @@ paper links its raw ranking simulations at Zenodo record `17497378`. The
 archive is large and is not committed to this repository; it must remain under
 `data/external/`.
 
-The adapter reads its paired ranking metadata JSON and Feather files. It keeps
-the exact supplied review order, uses the requested stopping-check interval,
-and emits `repke_trace.csv` fields compatible with the framework's method
-logs. Existing CMH, TM-QBCB, QUANT_CI, S-CAL, SAL, IPP, Knee, and heuristic
-rows remain outputs of the external framework; they are not reimplemented
-here.
+The adapter reads its paired ranking metadata JSON and Feather files. By
+default, it selects the paper's 500-initial-record, 25--200 adaptive-batch
+protocol, yielding 81 dataset IDs from the public archive. The release has
+217 matching ranking files, rather than the paper's reported 223 simulations;
+the metadata records the actual selected count. It keeps the exact supplied
+review order, uses the published 15-record stopping-check interval, and emits
+`repke_trace.csv` fields compatible with the framework's method logs. Existing
+CMH, TM-QBCB, QUANT_CI, S-CAL, SAL, IPP, Knee, and heuristic rows remain
+outputs of the external framework; they are not reimplemented here.
 
 Run after obtaining the external ranking directory:
 
@@ -35,7 +38,7 @@ Run after obtaining the external ranking directory:
 .venv/bin/amortized-stopping-repke /path/to/repke/data/rankings \
   --framework-revision "$(git -C /path/to/stopping-methods rev-parse HEAD)" \
   --output-dir results/external/repke \
-  --targets 0.8,0.9,0.95 --alphas 0.05,0.10 --check-interval 100
+  --targets 0.8,0.9,0.95 --alphas 0.05,0.10 --check-interval 15
 ```
 
 The command writes:

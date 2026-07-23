@@ -42,7 +42,8 @@ a frequentist certificate.
 
 ```bash
 .venv/bin/amortized-stopping-repke /path/to/repke/data/rankings \
-  --framework-revision "$(git -C /path/to/stopping-methods rev-parse HEAD)"
+  --framework-revision "$(git -C /path/to/stopping-methods rev-parse HEAD)" \
+  --check-interval 15
 ```
 
 See [EXTERNAL_BENCHMARK.md](EXTERNAL_BENCHMARK.md) for the two-track protocol,
