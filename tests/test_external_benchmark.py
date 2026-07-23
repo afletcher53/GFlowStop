@@ -6,6 +6,7 @@ import pandas as pd
 from pyarrow import Table, ipc
 
 from gflowstop.external_benchmark import _checkpoints, _published_repke_run, _recall_probability, evaluate_repke_rankings, load_repke_rankings, repke_ranking_from_frame
+from gflowstop.external_dta import evaluate_count_world_linkage, load_dta_split
 from gflowstop.external_utility import evaluate_external_greedy, evaluate_k1_split, fit_score_mean_prior
 from gflowstop.toys import Episode
 
@@ -131,3 +132,31 @@ def test_external_greedy_runner_calls_the_supplied_implementation(tmp_path):
         {"topic": "a", "q_star": 0.5, "cost": 0.1, "net_utility": 0.9, "stop_depth": 2},
         {"topic": "b", "q_star": 0.5, "cost": 0.1, "net_utility": 0.1, "stop_depth": 1},
     ]
+
+
+def test_dta_linkage_selects_the_count_world_from_training_only(tmp_path):
+    train_csv = tmp_path / "train.csv"
+    test_csv = tmp_path / "test.csv"
+    timeseries = tmp_path / "timeseries.csv"
+    pd.DataFrame({
+        "Topic": ["a.csv"] * 3 + ["b.csv"] * 3,
+        "label": [1, 1, 1, 0, 0, 0],
+    }).to_csv(train_csv, index=False)
+    pd.DataFrame({
+        "Topic": ["c.csv"] * 3 + ["d.csv"] * 3,
+        "label": [1, 1, 1, 0, 0, 0],
+    }).to_csv(test_csv, index=False)
+    pd.DataFrame({
+        "topic": ["a", "a", "b", "b", "c", "d"],
+        "depth": [1, 2, 1, 2, 1, 1],
+        "pi": [0.4, 0.9, 0.6, 0.1, 0.1, 0.9],
+    }).to_csv(timeseries, index=False)
+
+    train = load_dta_split(train_csv, timeseries)
+    test = load_dta_split(test_csv, timeseries)
+    per_topic, summary = evaluate_count_world_linkage(train, test, (0.5,))
+
+    count_test = per_topic[(per_topic.split == "test") & (per_topic.method == "full_count_threshold")]
+    assert set(count_test.selected_count_threshold) == {1}
+    assert count_test.correct.tolist() == [False, False]
+    assert summary[(summary.split == "test") & (summary.method == "full_count_threshold")].accuracy.item() == 0.0
