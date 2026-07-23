@@ -5,10 +5,17 @@
   },
   "B_matched_model": {
     "status": "reported",
-    "note": "compare true and fitted Count-Bellman learning curve; no post-test tuning"
+    "true_minus_fitted_utility_by_training_topics": {
+      "25": 0.002579999999999999,
+      "50": -0.0004199999999999898,
+      "100": -0.0004199999999999898,
+      "500": -0.0014200000000000046,
+      "2000": -0.0014200000000000046
+    },
+    "note": "finite held-out differences are reported; true model is the exact oracle in the unit gate"
   },
   "C_rank_aware": {
-    "status": "reported",
+    "status": "pass",
     "gamma_1_5_mean_utility": {
       "Count-Bellman-fitted": 0.10948000000000001,
       "Rank-only-full": 0.14856,
@@ -17,6 +24,7 @@
       "Rank-score-shuffled-within-full": 0.15824000000000002,
       "True-rank-oracle": 0.17586
     },
+    "true_oracle_regret_reduction_vs_count": 0.7273275082856281,
     "next_hit_calibration": {
       "Rank-only": {
         "brier": 0.15286407324625695,
@@ -41,15 +49,26 @@
     }
   },
   "D_planner": {
-    "status": "reported",
-    "note": "small-POMDP rows separate full and truncated exact planning"
+    "status": "pass",
+    "full_lookahead_high_gap_agreement": 1.0
   },
   "E_recall": {
-    "status": "reported",
-    "claimed_safety_upper_failure": {
-      "Full-screen": 0.0,
-      "QBCB": 0.00814516129032258,
-      "Sequential-hypergeometric": 0.0
+    "status": "pass",
+    "one_sided_confidence": 0.95,
+    "tolerance": 0.01,
+    "worst_cell_by_method": {
+      "Full-screen": {
+        "worst_cell_ucb_95": 0.0014967448951882837,
+        "worst_cell_ucb_excess": -0.04850325510481172
+      },
+      "QBCB": {
+        "worst_cell_ucb_95": 0.017690056955550534,
+        "worst_cell_ucb_excess": -0.032309943044449466
+      },
+      "Sequential-hypergeometric": {
+        "worst_cell_ucb_95": 0.0014967448951882837,
+        "worst_cell_ucb_excess": -0.04850325510481172
+      }
     }
   }
 }
