@@ -176,11 +176,45 @@ and it loses to direct Greedy. This experiment is retained as a leakage and
 external-validity diagnostic, not as evidence of non-myopic planning or
 real-data generalisation.
 
-The next valid Track-U tasks remain CLEF-IP with a published natural
-prior-art split and DTA outcomes with their cumulative-evidence decision.
-Each needs a frozen task-specific source-data/ranking manifest. The generic
-Repke loader is reusable for fixed ranking provenance, but it is not a
-substitute for the decision world.
+### DTA count-world linkage gate
+
+The local systematic-review artifact set provides 67 training and 68 held-out
+topics with fixed ranked labels and a final Reitsma sensitivity posterior
+`pi`. `python -m gflowstop.external_dta` asks the smallest decisive question
+before any new planner is built: can the present world,
+`W = 1[total_relevant >= K]`, even represent the final DTA decision
+`1[pi >= threshold]`?
+
+The test deliberately gives count stopping more information than deployment:
+it observes the **full final relevant count** for every topic, then chooses
+the best increasing `K` from the 67 training topics and evaluates it once on
+the 68 held-out topics. Thus it is an upper bound on this count-world
+formulation, not a stopping-policy result.
+
+| Final posterior threshold | Training-selected K | Held-out count-rule accuracy | Held-out count / pi Pearson r |
+| --- | ---: | ---: | ---: |
+| 0.20 | 0 | 66.2% | -0.390 |
+| 0.50 | 0 | 45.6% | -0.390 |
+| 0.80 | 139 | 44.1% | -0.390 |
+
+At the clinically central `pi >= 0.5` decision, the selected increasing
+count rule is simply `K=0`, so it accepts every held-out topic. Total
+included-study count is negatively correlated with final posterior
+sensitivity in both partitions (`r=-0.191` training and `r=-0.390` held out).
+The count threshold therefore cannot be presented as a DTA decision model;
+partial-prefix rank beliefs cannot repair a full-information surrogate that
+already fails this gate.
+
+The input outputs are unversioned local artifacts, so the committed metadata
+records all three input hashes rather than a source revision. This is still a
+useful structural gate, not a standalone reproduction of the DTA pipeline.
+Its exact per-topic rows, thresholds, and provenance are committed in
+`results/external/dta_count_linkage/`.
+
+The next valid Track-U task is an evidence-state model that forecasts how
+future studies change the cumulative meta-analytic posterior. The generic
+Repke loader and the count planner are not substitutes for that decision
+world.
 
 ## Promotion gates
 
@@ -199,8 +233,9 @@ No external claim is promoted until all of these hold:
 6. Any Track-U result uses the task's own downstream utility and is reported
    separately from recall safety.
 
-The recall branch is frozen at this negative result. The constructed CLEF-IP
-screen is also frozen as a diagnostic. The next experimental branch is a
-natural Track-U task with a task-specific input manifest. A new recall-policy
-variant requires a predeclared calibration mechanism and a fresh held-out
-benchmark, not another threshold sweep on these 217 runs.
+The recall branch is frozen at its negative result. The constructed CLEF-IP
+screen is frozen as a diagnostic, and the DTA linkage gate rules out promoting
+the existing count world as a clinical-decision policy. The next experimental
+branch must model evidence states rather than relevance counts. A new
+recall-policy variant requires a predeclared calibration mechanism and a
+fresh held-out benchmark, not another threshold sweep on these 217 runs.

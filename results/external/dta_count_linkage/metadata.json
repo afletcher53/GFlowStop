@@ -1,0 +1,16 @@
+{
+  "decision_timeseries": "/home/aaron/Desktop/Proj/Utility Based Stopping for Document Screening/results/systematic_review/sr_decision_timeseries.csv",
+  "decision_timeseries_sha256": "3f1f92fbe08550bf5d452f3395dba59728dbbf1f1a8c7d654616c7a2167f5cb6",
+  "gflowstop_dirty": false,
+  "gflowstop_revision": "c84da76871f11688fe077eee485f3b4baaa9e016",
+  "interpretation": "full-information count-threshold upper bound; not a stopping-policy evaluation",
+  "pi_thresholds": [
+    0.2,
+    0.5,
+    0.8
+  ],
+  "test_csv": "/home/aaron/Desktop/Proj/Utility Based Stopping for Document Screening/results/systematic_review/test_calibrated.csv",
+  "test_sha256": "2f3c13479b7f42f19843018f1e9173ee07d897d3115f1b3fd72f8f3467cf247c",
+  "train_csv": "/home/aaron/Desktop/Proj/Utility Based Stopping for Document Screening/results/systematic_review/train_calibrated.csv",
+  "train_sha256": "bf84457ddbc20d61e4c3109a89f1fe9fde5fcf7d42b1e02890aedc650b8f07ba"
+}

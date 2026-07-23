@@ -206,3 +206,16 @@ mean BM25 scores identify the generated controls. It is not evidence of
 planning, natural negative-world generalisation, or superiority over the
 published decision-theoretic work. The exact K=1 solver is validated; the
 external claim remains unpromoted.
+
+A separate DTA linkage gate uses 67 training and 68 held-out systematic-review
+topics with final Reitsma sensitivity posterior `pi`. It gives the current
+count world `1[total_relevant >= K]` its strongest possible test: choose `K`
+from **full final training counts**, then classify the final held-out decision
+`1[pi >= threshold]` using full final test counts. At `pi >= 0.2`, `0.5`, and
+`0.8`, the selected thresholds are `K=0`, `K=0`, and `K=139`, with held-out
+accuracies `66.2%`, `45.6%`, and `44.1%`. Full count versus final `pi` has
+Pearson correlation `-0.191` in training and `-0.390` in held-out topics.
+This is not a stopping result; it is a structural rejection of the current
+threshold-count world as a DTA decision surrogate. A future DTA planner must
+model how future studies change the cumulative evidence posterior, not merely
+how many relevant documents remain.
