@@ -29,9 +29,10 @@ protocol, yielding 81 dataset IDs from the public archive. The release has
 the metadata records the actual selected count. It keeps the exact supplied
 review order, uses the framework's published `--batch-size 15` rounded batch
 boundaries, and emits
-`repke_trace.csv` fields compatible with the framework's method logs. Existing
-CMH, TM-QBCB, QUANT_CI, S-CAL, SAL, IPP, Knee, and heuristic rows remain
-outputs of the external framework; they are not reimplemented here.
+`repke_trace.csv` fields compatible with the framework's method logs. The
+included `scripts/run_repke_cmh.py` calls the framework's CMH implementation
+directly (`methods.buscar.Buscar` with `bias=1`); other baselines remain
+outputs of the external framework and are not reimplemented here.
 
 Run after obtaining the external ranking directory:
 
@@ -51,6 +52,15 @@ The command writes:
   worst-dataset upper bound, effort, and realised recall;
 - `metadata.json`: source hashes, framework revision, GFlowStop revision, and
   all declared settings.
+
+To produce the matched CMH baseline from the same framework checkout:
+
+```bash
+.venv/bin/python scripts/run_repke_cmh.py /path/to/repke/data/rankings \
+  --framework-root /path/to/stopping-methods \
+  --framework-revision "$(git -C /path/to/stopping-methods rev-parse HEAD)" \
+  --output-dir results/external/repke_cmh
+```
 
 ### GFlowStop-R method
 
