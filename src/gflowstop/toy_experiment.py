@@ -245,6 +245,10 @@ def _rank_suite(config: RunConfig, data_dir: Path) -> tuple[list[dict], list[dic
         for index, episode in enumerate(test):
             topic = _topic(episode, threshold, f"rank-{index}")
             oracle = _rank_oracle(environment, length, threshold, q_star, cost, episode.scores)
+            root_values = oracle.q_values[()]
+            root_stop_value = float(max(root_values[ACTION_ACCEPT], root_values[ACTION_REJECT]))
+            root_information_value = oracle.values[()] - root_stop_value
+            root_action = oracle.action(())
             methods = {
                 "Count-Bellman-fitted": decide_bellman(topic, count_teacher),
                 "Rank-only-full": rollout_rank_belief(episode, rank_only, threshold, q_star, cost, length),
@@ -261,6 +265,8 @@ def _rank_suite(config: RunConfig, data_dir: Path) -> tuple[list[dict], list[dic
                     "stop_depth": depth, "action": action, "belief": belief,
                     "utility": utility(episode.labels, threshold, depth, action, q_star, cost),
                     "world": int(episode.labels.sum() >= threshold), "root_action_agrees_oracle": int(action == oracle_action) if depth == 0 else np.nan,
+                    "oracle_root_continues": int(root_action == ACTION_CONTINUE), "oracle_root_stop_value": root_stop_value,
+                    "oracle_root_information_value": root_information_value,
                 })
     return rows, diagnostics
 
@@ -570,7 +576,10 @@ def _summarise_utility(rows: list[dict], config: RunConfig) -> pd.DataFrame:
         utility_mean, utility_low, utility_high = _mean_ci(group.utility.to_numpy(), config.seed + number, config.bootstrap_replicates)
         output.append({**dict(zip(columns, keys, strict=True)), "topics": len(group),
                        "mean_utility": utility_mean, "utility_ci_low": utility_low, "utility_ci_high": utility_high,
-                       "mean_stop_depth": group.stop_depth.mean() if "stop_depth" in group else np.nan})
+                       "mean_stop_depth": group.stop_depth.mean() if "stop_depth" in group else np.nan,
+                       "oracle_root_continue_fraction": group.oracle_root_continues.mean() if "oracle_root_continues" in group else np.nan,
+                       "mean_oracle_root_stop_value": group.oracle_root_stop_value.mean() if "oracle_root_stop_value" in group else np.nan,
+                       "mean_oracle_root_information_value": group.oracle_root_information_value.mean() if "oracle_root_information_value" in group else np.nan})
     return pd.DataFrame(output).sort_values(["suite", "condition", "mean_utility"], ascending=[True, True, False])
 
 

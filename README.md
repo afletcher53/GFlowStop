@@ -30,6 +30,9 @@ The toy benchmark is the primary validation path. It separates two non-interchan
 
 This writes fixed episodes (labels, scores, generator parameters, and seeds) to `data/toys/`, and condition-level utility, planner, calibration, and recall results to `results/toys/`. It runs the perfect-information hindsight-target regression, beta-binomial oracle/learning curve, rank decay and score-shuffle ablations, delayed-information planning ladder, clustered and shifted stress tests, and target-recall safety/effort comparisons. QBCB and the alpha-spending hypergeometric rule are kept in the recall track; estimator and point-process rules are reported as empirical comparators, not certificates.
 
+The bounded interpretation of these results, including what is and is not a
+GFlowNet claim, is in [CLAIMS_AND_APPROACH.md](CLAIMS_AND_APPROACH.md).
+
 ## Scope
 
 The exact beta-binomial teacher is the coherent chain baseline. The toy suite adds a rank-aware latent belief planner; its results must pass the listed synthetic gates before Vaswani or other real collections are used as evidence. A fixed chain still has no reward-proportional flow objective: an evidence-set GFlowNet remains a separate research branch, not a relabeling of hindsight targets.
