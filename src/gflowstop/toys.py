@@ -486,6 +486,8 @@ class RankLatentBelief:
 
     rank_edges: tuple[float, ...] = (0.0, 0.01, 0.02, 0.05, 0.10, 0.20, 0.40, 1.0)
     use_scores: bool = True
+    use_score_mean: bool = True
+    use_local_scores: bool = True
     eta_points: int = 21
 
     def _bin(self, fraction: np.ndarray | float) -> np.ndarray:
@@ -528,7 +530,7 @@ class RankLatentBelief:
         y = np.concatenate(labels).astype(float)
         offset = np.concatenate(offsets)
         self.score_weights = np.zeros(x.shape[1])
-        if self.use_scores:
+        if self.use_scores and self.use_local_scores:
             for _ in range(600):
                 probabilities = np.asarray(_expit(offset + x @ self.score_weights), dtype=float)
                 gradient = x.T @ (probabilities - y) / len(y)
@@ -544,7 +546,7 @@ class RankLatentBelief:
         return self
 
     def _observation_key(self, observation: PolicyObservation) -> tuple[int, bytes]:
-        return observation.length, b"" if not self.use_scores else observation.scores.tobytes()
+        return observation.length, observation.scores.tobytes() if self.use_scores and self.use_local_scores else b""
 
     def _probability_matrix(self, observation: PolicyObservation) -> np.ndarray:
         if not hasattr(self, "rank_logits"):
@@ -557,7 +559,7 @@ class RankLatentBelief:
         score, slope = self._score_features(observation.scores)
         x = np.c_[np.ones(observation.length), score, slope, score * fractions]
         fixed = self.rank_logits[self._bin(fractions)]
-        if self.use_scores:
+        if self.use_scores and self.use_local_scores:
             fixed = fixed + x @ self.score_weights
         matrix = np.asarray(_expit(fixed[None, :] + self.etas[:, None]), dtype=float)
         self._probability_cache = key, matrix
@@ -585,7 +587,7 @@ class RankLatentBelief:
     def initial_state(self, observation: PolicyObservation) -> RankBeliefState:
         assert not hasattr(observation, "latent") and not hasattr(observation, "labels")
         self._probability_matrix(observation)
-        if not self.use_scores:
+        if not self.use_scores or not self.use_score_mean:
             return RankBeliefState(self.prior.copy())
         predicted_eta = self.score_eta_slope * ((float(observation.scores.mean()) - self.score_mean_center) / self.score_mean_scale)
         weights = self.prior * np.exp(-0.5 * ((self.etas - predicted_eta) / self.eta_scale) ** 2)

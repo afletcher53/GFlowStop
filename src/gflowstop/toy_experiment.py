@@ -230,11 +230,13 @@ def _rank_suite(config: RunConfig, data_dir: Path) -> tuple[list[dict], list[dic
         count_teacher = count_bellman_teacher(count_model, length, threshold, q_star, cost, 0.01)
         rank_only = RankLatentBelief(use_scores=False).fit(train)
         score_variants = {
-            "Rank-score-real-full": (_shuffle_scores(train, "real", config.seed), _shuffle_scores(test, "real", config.seed), "real"),
-            "Rank-score-shuffled-within-full": (_shuffle_scores(train, "within", config.seed + 1), _shuffle_scores(test, "within", config.seed + 2), "within"),
-            "Rank-score-shuffled-across-full": (_shuffle_scores(train, "across", config.seed + 3), _shuffle_scores(test, "across", config.seed + 4), "across"),
+            "Rank-score-mean-full": (RankLatentBelief(use_score_mean=True, use_local_scores=False), train, test),
+            "Rank-score-local-full": (RankLatentBelief(use_score_mean=False, use_local_scores=True), train, test),
+            "Rank-score-real-full": (RankLatentBelief(), train, test),
+            "Rank-score-shuffled-within-full": (RankLatentBelief(), _shuffle_scores(train, "within", config.seed + 1), _shuffle_scores(test, "within", config.seed + 2)),
+            "Rank-score-shuffled-across-full": (RankLatentBelief(), _shuffle_scores(train, "across", config.seed + 3), _shuffle_scores(test, "across", config.seed + 4)),
         }
-        score_models = {name: (RankLatentBelief(use_scores=True).fit(score_train), score_test) for name, (score_train, score_test, _mode) in score_variants.items()}
+        score_models = {name: (model.fit(score_train), score_test) for name, (model, score_train, score_test) in score_variants.items()}
         diagnostic_models = [("Rank-only", rank_only, test)] + [(name.removesuffix("-full"), belief, score_test) for name, (belief, score_test) in score_models.items()]
         for name, belief, diagnostic_test in diagnostic_models:
             next_p, next_y, world_p, worlds = sequential_predictions(diagnostic_test, belief, threshold)
