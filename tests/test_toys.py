@@ -5,6 +5,7 @@ import numpy as np
 from gflowstop.core import ACTION_ACCEPT, ACTION_CONTINUE, ACTION_REJECT, CountModel, count_bellman_teacher
 from gflowstop.toys import (
     ExactOracle,
+    Episode,
     PerfectInformationEnvironment,
     RankDecayEnvironment,
     RankLatentBelief,
@@ -99,3 +100,16 @@ def test_rank_belief_full_horizon_matches_exact_oracle():
             observation = PolicyObservation(length, observation.depth + 1, observation.hits + label, threshold, scores, observation.history + (label,))
         _action, values = rank_belief_action(model, state, observation, q_star, cost, lookahead=length)
         assert np.allclose(values, exact_values, atol=1e-10)
+
+
+def test_rank_score_ablation_separates_mean_and_local_features():
+    episodes = sample_episodes(RankDecayEnvironment(1.5, 1.0, 0.5, mu=1.0), 5, 5, seed=8)
+    episode = episodes[-1]
+    reversed_scores = Episode(episode.labels, episode.scores[::-1], episode.latent, episode.environment, episode.seed)
+    observation = episode.observation(0, 0, threshold=2)
+    reversed_observation = reversed_scores.observation(0, 0, threshold=2)
+    mean_model = RankLatentBelief(use_score_mean=True, use_local_scores=False).fit(episodes[:-1])
+    local_model = RankLatentBelief(use_score_mean=False, use_local_scores=True).fit(episodes[:-1])
+    assert np.allclose(mean_model.initial_state(observation).weights, mean_model.initial_state(reversed_observation).weights)
+    assert np.allclose(local_model.initial_state(observation).weights, local_model.initial_state(reversed_observation).weights)
+    assert not np.allclose(local_model._probability_matrix(observation), local_model._probability_matrix(reversed_observation))
