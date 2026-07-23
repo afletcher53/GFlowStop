@@ -8,7 +8,9 @@ raw per-topic rows beside the summary rather than hiding bad cells in a mean.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import subprocess
 from dataclasses import asdict, dataclass
 from math import ceil, comb, log
 from pathlib import Path
@@ -16,7 +18,7 @@ from statistics import NormalDist
 
 import numpy as np
 import pandas as pd
-from scipy.stats import hypergeom
+from scipy.stats import beta, hypergeom
 
 from .core import (
     ACTION_ACCEPT,
@@ -86,6 +88,29 @@ def _mean_ci(values: np.ndarray, seed: int, replicates: int) -> tuple[float, flo
     means = values[rng.integers(0, len(values), size=(replicates, len(values)))].mean(axis=1)
     low, high = np.quantile(means, (0.025, 0.975))
     return float(values.mean()), float(low), float(high)
+
+
+def _failure_ucb(failures: int, total: int, confidence: float = 0.95) -> float:
+    """One-sided Clopper-Pearson upper bound for a Bernoulli failure rate."""
+    if not 0 <= failures <= total or total < 1 or not 0.0 < confidence < 1.0:
+        raise ValueError("invalid binomial confidence interval inputs")
+    return 1.0 if failures == total else float(beta.ppf(confidence, failures + 1, total - failures))
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _data_manifest_sha256(data_dir: Path) -> str:
+    entries = [f"{path.relative_to(data_dir)} {_sha256(path)}" for path in sorted(data_dir.glob("*.npz"))]
+    return hashlib.sha256("\n".join(entries).encode()).hexdigest()
+
+
+def _provenance() -> dict[str, object]:
+    source = Path(__file__)
+    revision = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+    dirty = bool(subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True, check=True).stdout.strip())
+    return {"git_revision": revision, "git_dirty": dirty, "toys_py_sha256": _sha256(source.with_name("toys.py")), "toy_experiment_py_sha256": _sha256(source)}
 
 
 def _split(episodes: list[Episode], size: int) -> tuple[list[Episode], list[Episode]]:
@@ -511,7 +536,7 @@ def _recall_suite(config: RunConfig, data_dir: Path) -> list[dict]:
                 "Full-screen": (np.arange(length), True, True),
                 "Recall-oracle": (np.arange(recall_oracle_depth(episode.labels, target)), False, False),
                 "Consecutive-miss-20": (_consecutive_miss_review(episode.labels, 20), False, False),
-                "QuantCI-estimator": (_quantci_review(episode.labels, rank_rates, target, alpha), False, False),
+                "Monotone-rank-plug-in-UCB": (_quantci_review(episode.labels, rank_rates, target, alpha), False, False),
                 "Point-process-exponential": (_point_process_review(episode.labels, target, alpha), False, False),
             }
             rng = np.random.default_rng(config.seed + 1_000_003 * identifier + int(target * 1000) + int(alpha * 100))
@@ -563,6 +588,7 @@ def _summarise_recall(rows: list[dict], config: RunConfig) -> pd.DataFrame:
         failure_mean, failure_low, failure_high = _mean_ci(group.failure.to_numpy(), config.seed + 20_000 + number, config.bootstrap_replicates)
         output.append({**dict(zip(("suite", "environment", "condition", "method", "target_recall", "alpha", "claims_safety"), keys, strict=True)),
                        "topics": len(group), "failure_rate": failure_mean, "failure_ci_low": failure_low, "failure_ci_high": failure_high,
+                       "failure_ucb_95": _failure_ucb(int(group.failure.sum()), len(group)),
                        "reliability_gap": failure_mean - keys[5], "mean_review_fraction": group.review_fraction.mean(),
                        "mean_excess_effort": group.excess_effort.mean(), "mean_overshoot": group.overshoot.mean()})
     return pd.DataFrame(output).sort_values(["suite", "failure_rate", "mean_review_fraction"])
@@ -583,6 +609,15 @@ def _gates(utility_rows: pd.DataFrame, recall_rows: pd.DataFrame, diagnostics: p
     rank_regret = oracle_value - gamma.get("Rank-score-real-full", np.nan)
     rank_reduction = 1.0 - rank_regret / count_regret if count_regret > 0.0 else np.nan
     full_planner = planner_summary[planner_summary.method.eq("Exact-lookahead-10")]
+    safety_cells = []
+    if len(recall):
+        columns = ["suite", "environment", "condition", "method", "target_recall", "alpha"]
+        for keys, group in recall.groupby(columns, dropna=False):
+            upper = _failure_ucb(int(group.failure.sum()), len(group))
+            safety_cells.append({**dict(zip(columns, keys, strict=True)), "topics": len(group), "failure_ucb_95": upper,
+                                 "ucb_excess": upper - float(keys[-1])})
+    safety_frame = pd.DataFrame(safety_cells)
+    worst_safety = safety_frame.groupby("method").agg(worst_cell_ucb_95=("failure_ucb_95", "max"), worst_cell_ucb_excess=("ucb_excess", "max")).to_dict(orient="index") if len(safety_frame) else {}
     return {
         "A_oracle_correctness": {"perfect_information_test": "pytest test_hindsight_flow_target_is_not_bayes_optimal", "status": "pass"},
         "B_matched_model": {"status": "reported", "true_minus_fitted_utility_by_training_topics": learning_curve,
@@ -591,8 +626,10 @@ def _gates(utility_rows: pd.DataFrame, recall_rows: pd.DataFrame, diagnostics: p
                            "true_oracle_regret_reduction_vs_count": rank_reduction,
                            "next_hit_calibration": rank_diagnostics[["brier", "log_loss", "ece"]].to_dict(orient="index") if len(rank_diagnostics) else {}},
         "D_planner": {"status": "pass" if len(full_planner) and float(full_planner.high_gap_action_agreement.iloc[0]) > 0.95 else "fail",
-                        "full_lookahead_high_gap_agreement": float(full_planner.high_gap_action_agreement.iloc[0]) if len(full_planner) else None},
-        "E_recall": {"status": "reported", "claimed_safety_upper_failure": recall.groupby("method").failure.mean().to_dict() if len(recall) else {}},
+                        "full_lookahead_high_gap_agreement": float(full_planner.high_gap_action_agreement.iloc[0]) if len(full_planner) else None,
+                        "rank_exact_test": "pytest test_rank_belief_full_horizon_matches_exact_oracle"},
+        "E_recall": {"status": "pass" if len(safety_frame) and bool((safety_frame.ucb_excess <= 0.01).all()) else "fail",
+                     "one_sided_confidence": 0.95, "tolerance": 0.01, "worst_cell_by_method": worst_safety},
     }
 
 
@@ -608,6 +645,7 @@ def main() -> None:
     parser.add_argument("--quick", action="store_true")
     args = parser.parse_args()
     config = RunConfig(args.seed, args.train_episodes, args.test_episodes, args.recall_episodes, args.bootstrap_replicates, args.quick)
+    provenance = _provenance()
     args.results_dir.mkdir(parents=True, exist_ok=True)
     args.data_dir.mkdir(parents=True, exist_ok=True)
     utility_rows = _perfect_information_suite(config, args.data_dir)
@@ -631,7 +669,7 @@ def main() -> None:
     planner_summary.to_csv(args.results_dir / "planner_summary.csv", index=False)
     gates = _gates(utility_frame, recall_frame, diagnostic_frame, planner_summary)
     (args.results_dir / "gates.json").write_text(json.dumps(gates, indent=2) + "\n")
-    metadata = {"config": asdict(config), "fixed_data": str(args.data_dir), "utility_objective": "terminal threshold decision minus c*depth", "recall_objective": "minimise unique reviewed documents subject to target-recall failure control", "git_revision": __import__("subprocess").run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()}
+    metadata = {"config": asdict(config), "fixed_data": str(args.data_dir), "utility_objective": "terminal threshold decision minus c*depth", "recall_objective": "minimise unique reviewed documents subject to target-recall failure control", **provenance, "data_manifest_sha256": _data_manifest_sha256(args.data_dir)}
     (args.results_dir / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
     (args.results_dir / "report.md").write_text(
         "# Fixed synthetic stopping benchmark\n\n"
