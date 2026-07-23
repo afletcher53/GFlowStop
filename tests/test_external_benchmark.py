@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from pyarrow import Table, ipc
 
-from gflowstop.external_benchmark import _published_repke_run, _recall_probability, evaluate_repke_rankings, load_repke_rankings, repke_ranking_from_frame
+from gflowstop.external_benchmark import _checkpoints, _published_repke_run, _recall_probability, evaluate_repke_rankings, load_repke_rankings, repke_ranking_from_frame
 
 
 def _ranking(dataset: str, repeat: int, labels: list[int]):
@@ -76,3 +76,9 @@ def test_published_repke_selection_rejects_old_batch_protocols():
     assert _published_repke_run(info)
     info["batches"][0]["params"]["batch"]["dyn_max_batch_size"] = 2000
     assert not _published_repke_run(info)
+
+
+def test_repke_checkpoints_match_framework_batch_boundaries():
+    # RankedDataset.bounds(batch_size=15) rounds an evenly spaced partition.
+    # Literal 15-document checks would add an illegal checkpoint at 30 here.
+    assert _checkpoints(31, 15) == (15, 31)

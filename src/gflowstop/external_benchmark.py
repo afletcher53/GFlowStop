@@ -123,12 +123,13 @@ def load_repke_rankings(ranking_dir: Path, published_only: bool = True) -> list[
 
 
 def _checkpoints(length: int, interval: int) -> tuple[int, ...]:
-    if interval < 1:
+    if length < 1 or interval < 1:
         raise ValueError("check interval must be positive")
-    points = list(range(interval, length + 1, interval))
-    if not points or points[-1] != length:
-        points.append(length)
-    return tuple(points)
+    # Match RankedDataset.bounds(batch_size=...) in the public framework.
+    # Its command-line ``--batch-size 15`` is a requested average batch size,
+    # not literal multiples of 15 when the ranking length is not divisible.
+    boundaries = np.linspace(0, length, num=(length // interval) + 1, endpoint=True, dtype=int)
+    return tuple(int(point) for point in boundaries[1:])
 
 
 def _folds(rankings: list[ExternalRanking], folds: int) -> dict[str, int]:

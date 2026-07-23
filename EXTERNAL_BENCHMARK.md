@@ -27,7 +27,8 @@ default, it selects the paper's 500-initial-record, 25--200 adaptive-batch
 protocol, yielding 81 dataset IDs from the public archive. The release has
 217 matching ranking files, rather than the paper's reported 223 simulations;
 the metadata records the actual selected count. It keeps the exact supplied
-review order, uses the published 15-record stopping-check interval, and emits
+review order, uses the framework's published `--batch-size 15` rounded batch
+boundaries, and emits
 `repke_trace.csv` fields compatible with the framework's method logs. Existing
 CMH, TM-QBCB, QUANT_CI, S-CAL, SAL, IPP, Knee, and heuristic rows remain
 outputs of the external framework; they are not reimplemented here.
