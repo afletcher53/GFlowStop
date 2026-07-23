@@ -1,0 +1,53 @@
+from math import comb
+
+import numpy as np
+
+from gflowstop.core import ACTION_CONTINUE, CountModel, count_bellman_teacher
+from gflowstop.toys import (
+    ExactOracle,
+    PerfectInformationEnvironment,
+    beta_binomial_sequence_distribution,
+    delayed_sequence_distribution,
+    hindsight_flow_action,
+    independent_sequence_distribution,
+)
+from gflowstop.toy_experiment import _qbcb_j
+
+
+def test_hindsight_flow_target_is_not_bayes_optimal():
+    sequences, probabilities = independent_sequence_distribution(np.array([0.5]))
+    oracle = ExactOracle(sequences, probabilities, threshold=1, q_star=0.5, cost=0.01)
+    assert oracle.action(()) == ACTION_CONTINUE
+    assert oracle.values[()] > 0.0
+    assert hindsight_flow_action(0, 0.5) != ACTION_CONTINUE
+    assert hindsight_flow_action(1, 0.5) != ACTION_CONTINUE
+
+
+def test_beta_binomial_enumeration_matches_count_bellman():
+    model = CountModel(1.5, 3.0)
+    sequences, probabilities = beta_binomial_sequence_distribution(model.alpha, model.beta, length=7)
+    oracle = ExactOracle(sequences, probabilities, threshold=3, q_star=0.4, cost=0.03)
+    teacher = count_bellman_teacher(model, length=7, threshold=3, q_star=0.4, cost=0.03, temperature=0.01)
+    assert np.isclose(oracle.values[()], teacher.values[0, 0], atol=1e-12)
+
+
+def test_episode_observation_excludes_evaluation_latent_data():
+    episode = PerfectInformationEnvironment().sample(np.random.default_rng(7))
+    observation = episode.observation(0, 0, 1)
+    assert not hasattr(observation, "latent")
+    assert not hasattr(observation, "labels")
+
+
+def test_delayed_information_requires_non_myopic_planning():
+    sequences, probabilities = delayed_sequence_distribution(10, early_length=3)
+    oracle = ExactOracle(sequences, probabilities, threshold=2, q_star=0.5, cost=0.01)
+    assert oracle.action_with_lookahead((), 1) != ACTION_CONTINUE
+    assert oracle.action(()) == ACTION_CONTINUE
+
+
+def test_qbcb_order_statistic_has_the_requested_binomial_failure_bound():
+    target, alpha, positives = 0.9, 0.05, 30
+    order = _qbcb_j(positives, target, alpha)
+    failure = sum(comb(positives, count) * target**count * (1.0 - target) ** (positives - count) for count in range(order, positives + 1))
+    assert order == 30
+    assert failure <= alpha
