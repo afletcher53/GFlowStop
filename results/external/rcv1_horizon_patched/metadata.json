@@ -1,0 +1,42 @@
+{
+  "belief_features": "rank plus within-topic score z-scores and slopes; no raw topic-score mean",
+  "decision_world": "W = 1[sum(labels) >= K]; K is selected from the train-fitted root belief without test labels",
+  "expected_test_topics": 45,
+  "expected_train_topics": 94,
+  "gflowstop_dirty": true,
+  "gflowstop_revision": "7ce492a1c4f2b52ff8fb457e9425f8d19e88862a",
+  "horizons": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "kappas": [
+    0.05,
+    0.2,
+    0.5
+  ],
+  "q_stars": [
+    0.3,
+    0.5,
+    0.7
+  ],
+  "require_common_length": true,
+  "root_only": false,
+  "seed": 20260725,
+  "source_revision": null,
+  "source_root": null,
+  "tail_approximation": "normal mixture over latent rank-intensity states",
+  "test_csv": "/home/aaron/Desktop/Proj/GFlowStop/data/external/rcv1_rebuild/prepared/test_rankings.csv",
+  "test_sha256": "0f9b6f24c72beee9c1bd35883fcbe14d3a268b0e3eb9955c16e22e92f80b1a55",
+  "test_topics": 45,
+  "train_csv": "/home/aaron/Desktop/Proj/GFlowStop/data/external/rcv1_rebuild/prepared/train_rankings.csv",
+  "train_sha256": "c1d249f650b757d218c2347161db74d586f80f067366e50b6bfbfd8e844a60fd",
+  "train_sizes": [
+    10,
+    25,
+    50,
+    94
+  ],
+  "train_topics": 94
+}

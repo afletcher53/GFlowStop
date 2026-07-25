@@ -2,11 +2,11 @@
 
 ## Status
 
-The repository now has a target-recall adapter for the public Repke et al.
-stopping-method framework. It has passed a miniature schema/cross-fitting test,
-one external Rank-only screen, and a matched direct CMH baseline reproduction.
-No comparison with the remaining published baselines, CLEF-IP, or DTA result
-is currently claimed.
+The repository has a target-recall adapter for the public Repke et al.
+stopping-method framework and a separate, controlled Track-U horizon protocol.
+The existing Repke screen is negative. The owned CLEF collections and the
+SIGIR'26 DTA artifact set are excluded from new external claims: they may
+remain as historical diagnostics, but are not valid benchmark rows.
 
 The external benchmark has two separate leaderboards. This is deliberate:
 target-recall methods are assessed by safety and effort, while downstream
@@ -132,89 +132,84 @@ The committed first-stop rows, summary, and metadata are sufficient to audit
 the table. The 132 MB checkpoint trace remains ignored because it is fully
 regenerable from the archived ranking hashes and the recorded source revision.
 
-## Track U: downstream decision utility
+## Track U: imposed threshold-decision utility
 
-Repke's collections are appropriate for Track R but do not define a common
-downstream decision world. They must not be coerced into the count-threshold
-utility score for a headline comparison.
+RCV1 is the primary Track-U collection because its fixed 94/45 category split
+can support a belief-quality ladder. This is explicitly a controlled decision
+task, not a claim that RCV1 has a natural downstream decision: for each test
+ranking the protocol sets `W = 1[sum(y) >= K]`. `K` is selected from the
+training-fitted root belief to make its predicted world probability closest to
+the declared `q*`; test labels are used only after the policy acts.
 
-### Constructed CLEF-IP K=1 diagnostic
+The runner accepts the in-house fixed AutoTAR train/test ranking CSVs
+(`Topic`, `Rank`, `Score`, `label`) and retains the supplied source revision.
+Run its root preflight first, inspect `root_diagnostics.csv`, then run
+the horizon sweep in a separate output directory:
 
-The repository includes one deliberately narrow, non-promoted Track-U screen
-from the local `PatentSearch` checkout. Its `omega_combined` split has 1,000
-topics in each partition: 500 original positive CLEF-IP topics and 500
-`OMEGAN_` corpus-sampled structural-zero controls. It is a constructed mixed
-screening split, not natural external negative-world evidence.
+```bash
+.venv/bin/python -m gflowstop.external_horizon /path/to/rcv1_train.csv /path/to/rcv1_test.csv \
+  --source-root /path/to/autotar --source-revision "$(git -C /path/to/autotar rev-parse HEAD)" \
+  --train-sizes 10,25,50,94 --horizons 1,2,4,8 \
+  --q-stars 0.3,0.5,0.7 --kappas 0.05,0.20,0.50 \
+  --expected-train-topics 94 --expected-test-topics 45 --require-common-length \
+  --root-only --output-dir results/external/rcv1_root_preflight
 
-`python -m gflowstop.external_utility` fits the rank-latent model only on the
-positive training topics and adds a structural-zero component. Its exact K=1
-Bellman solver is valid along the only nonterminal history (a run of misses).
-The optional score-mean variant learns a one-feature world prior solely from
-training topics. When `--greedy-script` is supplied, it calls the external
-project's `simulate_topic(..., policy="greedy")` directly and records a
-per-topic paired comparison.
+.venv/bin/python -m gflowstop.external_horizon /path/to/rcv1_train.csv /path/to/rcv1_test.csv \
+  --source-root /path/to/autotar --source-revision "$(git -C /path/to/autotar rev-parse HEAD)" \
+  --train-sizes 10,25,50,94 --horizons 1,2,4,8 \
+  --q-stars 0.3,0.5,0.7 --kappas 0.05,0.20,0.50 \
+  --expected-train-topics 94 --expected-test-topics 45 --require-common-length \
+  --output-dir results/external/rcv1_horizon
+```
 
-The first matched run uses `q*=0.5`, `c=0.01`, 1,000 fixed test topics, and
-the source CSV hashes in
-`results/external/clefip_k1_matched/metadata.json`. GFlowStop source was clean
-at `bc9b1c68899fa1b473be793e0d6fe5a214304227`. The external checkout was at
-`9e1320fcb60217a233d7272170396251408af0f3` but dirty; the directly called
-Greedy source has SHA-256
-`02dfd36c209eb9cade6da22705f4e6166b8c8713bd97ccd658120198aca404f7`.
+For each training size, the rank-belief model is fit on a deterministic nested
+subset of the 94 training categories and evaluated only on the held-out 45.
+Its features are rank, within-topic score z-scores, and score slopes; raw
+topic-score means are disabled. The planner uses a normal mixture for the
+remaining-count tail and emits all horizon cells, so `H=1` is the internal
+one-step/Greedy analogue and fixed larger `H` values cover the corresponding
+block-lookahead family without treating any as a published baseline.
 
-| Method | Mean utility | SE | Mean depth | Paired utility difference vs Greedy | SE | Decision accuracy |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Direct external Greedy | 0.17137 | 0.00529 | 1.363 | -- | -- | 0.870 |
-| Zero-inflated rank | 0.13581 | 0.00483 | 7.669 | -0.03556 | 0.00616 | 0.925 |
-| Zero-inflated score mean | 0.24183 | 0.00171 | 0.267 | +0.07046 | 0.00566 | 0.989 |
+`calibration.csv` records held-out next-hit log loss. The root calculation in
+the preflight uses only the train-fitted belief and observable test rankings;
+the accompanying calibration report evaluates that belief against held-out
+labels. It records root continuation fraction and information value at the
+largest requested horizon before a utility curve is generated. These
+diagnostics are not a real-data oracle; a flat curve when they show zero
+continuation or zero information is non-evidence. `utility_summary.csv`
+reports the descriptive `H*` for every training-size, `q*`, and cost cell.
+Horizon selection is not deployed or tuned on the held-out curve.
 
-The score-mean result is **not a breakthrough claim**. Its root-world AUC is
-`0.99907`, and only 4% of test topics continue: raw mean BM25 scores nearly
-identify which half of this constructed split consists of corpus-sampled
-zero controls. The rank-only model is the relevant model-repair result here,
-and it loses to direct Greedy. This experiment is retained as a leakage and
-external-validity diagnostic, not as evidence of non-myopic planning or
-real-data generalisation.
+### First RCV1 horizon run: decision-live, not promoted
 
-### DTA count-world linkage gate
+The local RCV1 AutoTAR-style reproduction completed the root preflight and
+the 6,480-row horizon sweep in
+`results/external/rcv1_root_preflight_patched/` and
+`results/external/rcv1_horizon_patched/`. Across 10, 25, 50, and 94 training
+topics, held-out next-hit log loss was `0.01951` to `0.02117`; root
+continuation was `95.6%` to `97.8%`, with mean root information value
+`0.0781` to `0.1110`. The curve is therefore decision-live rather than a
+flat/no-information diagnostic.
 
-The local systematic-review artifact set provides 67 training and 68 held-out
-topics with fixed ranked labels and a final Reitsma sensitivity posterior
-`pi`. `python -m gflowstop.external_dta` asks the smallest decisive question
-before any new planner is built: can the present world,
-`W = 1[total_relevant >= K]`, even represent the final DTA decision
-`1[pi >= threshold]`?
+On the imposed world, `H=2` has mean utility `-0.05314` versus `-0.07738`
+for `H=1` (paired mean difference `+0.02424` across 1,620 topic/cell pairs).
+It is the descriptive `H*` in 27 of 36 cells; `H=4` and `H=8` are selected in
+four and five cells. This mean advantage is not uniform: 1,050 pairs favour
+`H=1`, 485 tie, and 85 favour `H=2`, so rare large gains offset many small
+losses. These rows establish neither a deployable horizon choice nor a
+natural RCV1 decision task.
 
-The test deliberately gives count stopping more information than deployment:
-it observes the **full final relevant count** for every topic, then chooses
-the best increasing `K` from the 67 training topics and evaluates it once on
-the 68 held-out topics. Thus it is an upper bound on this count-world
-formulation, not a stopping-policy result.
+The run used a dirty local GFlowStop tree at base revision
+`7ce492a1c4f2b52ff8fb457e9425f8d19e88862a` and has no supplied external
+source revision. It remains a provenance-marked internal diagnostic until
+the builder and result-producing source are committed and the public-source
+gate below is met.
 
-| Final posterior threshold | Training-selected K | Held-out count-rule accuracy | Held-out count / pi Pearson r |
-| --- | ---: | ---: | ---: |
-| 0.20 | 0 | 66.2% | -0.390 |
-| 0.50 | 0 | 45.6% | -0.390 |
-| 0.80 | 139 | 44.1% | -0.390 |
-
-At the clinically central `pi >= 0.5` decision, the selected increasing
-count rule is simply `K=0`, so it accepts every held-out topic. Total
-included-study count is negatively correlated with final posterior
-sensitivity in both partitions (`r=-0.191` training and `r=-0.390` held out).
-The count threshold therefore cannot be presented as a DTA decision model;
-partial-prefix rank beliefs cannot repair a full-information surrogate that
-already fails this gate.
-
-The input outputs are unversioned local artifacts, so the committed metadata
-records all three input hashes rather than a source revision. This is still a
-useful structural gate, not a standalone reproduction of the DTA pipeline.
-Its exact per-topic rows, thresholds, and provenance are committed in
-`results/external/dta_count_linkage/`.
-
-The next valid Track-U task is an evidence-state model that forecasts how
-future studies change the cumulative meta-analytic posterior. The generic
-Repke loader and the count planner are not substitutes for that decision
-world.
+SYNERGY and non-CLEF Repke/TREC rankings are secondary out-of-domain checks
+after the RCV1 curve is decision-live. CLEF-IP, CLEF eHealth, and DTA are
+excluded from this external robustness set because they are owned data/method
+artifacts. An intervention-review evidence-state decision is a separate
+future task, not a substitute for this imposed-world experiment.
 
 ## Promotion gates
 
@@ -230,12 +225,12 @@ No external claim is promoted until all of these hold:
    condition; the maximum condition-specific one-sided upper bound is used,
    not a grand mean.
 5. Effort comparisons exclude methods failing the declared safety constraint.
-6. Any Track-U result uses the task's own downstream utility and is reported
-   separately from recall safety.
+6. Track-U reports the imposed world, train-only threshold selection,
+   held-out next-hit loss, and root diagnostics separately from recall safety.
+7. The full RCV1 horizon curve is reported before any SYNERGY, TREC, or Repke
+   robustness result is interpreted.
 
-The recall branch is frozen at its negative result. The constructed CLEF-IP
-screen is frozen as a diagnostic, and the DTA linkage gate rules out promoting
-the existing count world as a clinical-decision policy. The next experimental
-branch must model evidence states rather than relevance counts. A new
-recall-policy variant requires a predeclared calibration mechanism and a
-fresh held-out benchmark, not another threshold sweep on these 217 runs.
+The recall branch remains frozen at its negative result. The CLEF-IP and DTA
+artifacts are retained only as historical diagnostics; neither can be revived
+as an external comparison. A natural intervention-review decision model would
+require an evidence-state formulation and separate data extraction.

@@ -19,6 +19,7 @@ dependencies = [
 amortized-stopping = "gflowstop.experiment:main"
 amortized-stopping-toys = "gflowstop.toy_experiment:main"
 amortized-stopping-repke = "gflowstop.external_benchmark:main"
+amortized-stopping-horizon = "gflowstop.external_horizon:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

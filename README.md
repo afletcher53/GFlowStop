@@ -35,10 +35,13 @@ GFlowNet claim, is in [CLAIMS_AND_APPROACH.md](CLAIMS_AND_APPROACH.md).
 
 ## External benchmark protocol
 
-The first external adapter consumes Repke et al.'s fixed public ranking
-simulations without re-ranking them. It is a target-recall track only; its
-posterior stopping statement is evaluated empirically and is not presented as
-a frequentist certificate.
+The Repke adapter is a frozen, negative target-recall screen. The primary
+Track-U follow-up is the explicit RCV1 imposed-world horizon protocol: it fits
+only the supplied 94 training rankings, reports held-out next-hit loss and
+root diagnostics on the 45 test rankings, then evaluates `W = 1[sum(y) >= K]`
+without presenting it as a natural decision world. CLEF-IP, CLEF eHealth, and
+DTA are excluded from new external claims because they are owned artifacts.
+See `EXTERNAL_BENCHMARK.md` for the required root preflight and source hashes.
 
 ```bash
 .venv/bin/amortized-stopping-repke /path/to/repke/data/rankings \
@@ -48,6 +51,22 @@ a frequentist certificate.
 
 See [EXTERNAL_BENCHMARK.md](EXTERNAL_BENCHMARK.md) for the two-track protocol,
 data provenance, and the claim gates before any external comparison.
+
+### First RCV1 horizon result
+
+The included `results/external/rcv1_horizon_patched/` ledger is a controlled,
+in-house AutoTAR-style RCV1 reconstruction, not the authors' unpublished
+GRLStop rankings or a natural RCV1 decision task. It covers 6,480 held-out
+topic/cell rows over the fixed 94/45 category split. Held-out next-hit log loss
+is 0.01951--0.02117; 95.6--97.8% of root decisions continue and have positive
+fitted-model information value.
+
+On the imposed world, horizon 2 has mean utility -0.05314 versus -0.07738 for
+horizon 1 (paired difference +0.02424 across 1,620 topic/cell pairs). The
+mean is driven by rare large gains: 1,050 pairs favour horizon 1, 485 tie, and
+85 favour horizon 2. Thus `H*` is descriptive only, not a selected deployment
+rule or a claim of external superiority. The ledger records the ranking hashes,
+fixed seed, implementation revision, and its pre-commit dirty-tree provenance.
 
 ## Scope
 
