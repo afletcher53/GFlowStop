@@ -627,6 +627,78 @@ class RankLatentBelief:
         return float(((np.arange(len(distribution)) - mean) ** 2) @ distribution)
 
 
+@dataclass(frozen=True)
+class K1RankPlan:
+    """Exact policy values on the only non-terminal K=1 path: consecutive misses."""
+
+    actions: np.ndarray
+    values: np.ndarray
+    beliefs: np.ndarray
+
+
+def k1_rank_bellman(
+    model: RankLatentBelief, observation: PolicyObservation, q_star: float, cost: float,
+) -> K1RankPlan:
+    """Solve a full K=1 rank-aware Bellman problem in linear time.
+
+    Before the first relevant document every reachable history is a run of
+    misses; after a hit, acceptance is a logical certificate.  There is no
+    need to enumerate a binary history tree.
+    """
+    if observation.threshold != 1 or observation.depth != 0 or observation.hits != 0:
+        raise ValueError("K=1 planning starts before screening with no observed hits")
+    if not 0.0 < q_star < 1.0 or cost < 0.0:
+        raise ValueError("invalid utility parameters")
+    return _k1_plan(model._probability_matrix(observation), model.initial_state(observation).weights, q_star, cost)
+
+
+def zero_inflated_k1_rank_bellman(
+    model: RankLatentBelief, observation: PolicyObservation, zero_mass: float, q_star: float, cost: float,
+) -> K1RankPlan:
+    """Exact K=1 planner with a structural all-zero-topic mixture component."""
+    if not 0.0 <= zero_mass <= 1.0:
+        raise ValueError("zero_mass must be in [0, 1]")
+    if observation.threshold != 1 or observation.depth != 0 or observation.hits != 0:
+        raise ValueError("K=1 planning starts before screening with no observed hits")
+    positive_probabilities = model._probability_matrix(observation)
+    probabilities = np.vstack((np.zeros((1, observation.length)), positive_probabilities))
+    weights = np.r_[zero_mass, (1.0 - zero_mass) * model.initial_state(observation).weights]
+    return _k1_plan(probabilities, weights, q_star, cost)
+
+
+def _k1_plan(probabilities: np.ndarray, initial_weights: np.ndarray, q_star: float, cost: float) -> K1RankPlan:
+    probabilities = np.asarray(probabilities, dtype=float)
+    initial_weights = np.asarray(initial_weights, dtype=float)
+    if probabilities.ndim != 2 or len(initial_weights) != len(probabilities):
+        raise ValueError("K=1 probabilities and weights disagree")
+    if not np.isclose(initial_weights.sum(), 1.0):
+        raise ValueError("K=1 initial weights must sum to one")
+    length, states = probabilities.shape[1], len(probabilities)
+    if not 0.0 < q_star < 1.0 or cost < 0.0:
+        raise ValueError("invalid utility parameters")
+    weights = np.empty((length + 1, states))
+    weights[0] = initial_weights
+    for depth in range(length):
+        weights[depth + 1] = weights[depth] * (1.0 - probabilities[:, depth])
+        weights[depth + 1] /= weights[depth + 1].sum()
+    no_hit = np.ones((states, length + 1))
+    no_hit[:, :-1] = np.cumprod((1.0 - probabilities)[:, ::-1], axis=1)[:, ::-1]
+    beliefs = 1.0 - np.einsum("ij,ji->i", weights, no_hit)
+    values = np.full((length + 1, 3), -np.inf)
+    values[length, ACTION_REJECT] = q_star / 2.0
+    for depth in range(length - 1, -1, -1):
+        belief = beliefs[depth]
+        values[depth, ACTION_ACCEPT] = (belief - q_star) / 2.0
+        values[depth, ACTION_REJECT] = (q_star - belief) / 2.0
+        hit_probability = float(weights[depth] @ probabilities[:, depth])
+        values[depth, ACTION_CONTINUE] = (
+            -cost
+            + hit_probability * (1.0 - q_star) / 2.0
+            + (1.0 - hit_probability) * values[depth + 1].max()
+        )
+    return K1RankPlan(np.argmax(values, axis=1), values, beliefs)
+
+
 def _synthetic_observation(observation: PolicyObservation, observed_label: int) -> PolicyObservation:
     if observed_label not in (0, 1):
         raise ValueError("observed_label must be binary")

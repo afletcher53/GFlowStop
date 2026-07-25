@@ -184,3 +184,38 @@ promotion gates.
 5. Only after planner and belief-model gates hold, compare policy
    approximation and training objectives. Real collections come after those
    synthetic gates, not before.
+
+The Repke external target-recall adapter has now completed a matched screen on
+the released 81-dataset-ID subset against the framework's direct CMH baseline.
+At 80% recall, rank-only GFlowStop-R fails the safety gate (19.82% failures;
+24.80% one-sided 95% upper bound), whereas CMH has 0.46% failures and a 2.17%
+upper bound. At 90% and 95%, CMH also uses less review effort at the same
+aggregate confidence level. The optional local-score ablation degrades safety.
+This freezes the current recall-policy line as a negative result; no real-data
+superiority or recall-certification claim follows. Its approximation,
+provenance, and remaining Track-U gate are in `EXTERNAL_BENCHMARK.md`.
+
+The first Track-U external diagnostic is a constructed CLEF-IP K=1 mixed
+split: each partition combines 500 positive CLEF-IP topics with 500
+corpus-sampled structural-zero controls. The exact zero-inflated rank planner
+has mean utility `0.13581`, below the directly called external Greedy policy's
+`0.17137` (paired difference `-0.03556`, SE `0.00616`). A score-mean prior
+reaches `0.24183`, but its root-world AUC is `0.99907` and it continues on
+only 4% of topics. That gain is a construction-signature diagnostic: raw
+mean BM25 scores identify the generated controls. It is not evidence of
+planning, natural negative-world generalisation, or superiority over the
+published decision-theoretic work. The exact K=1 solver is validated; the
+external claim remains unpromoted.
+
+A separate DTA linkage gate uses 67 training and 68 held-out systematic-review
+topics with final Reitsma sensitivity posterior `pi`. It gives the current
+count world `1[total_relevant >= K]` its strongest possible test: choose `K`
+from **full final training counts**, then classify the final held-out decision
+`1[pi >= threshold]` using full final test counts. At `pi >= 0.2`, `0.5`, and
+`0.8`, the selected thresholds are `K=0`, `K=0`, and `K=139`, with held-out
+accuracies `66.2%`, `45.6%`, and `44.1%`. Full count versus final `pi` has
+Pearson correlation `-0.191` in training and `-0.390` in held-out topics.
+This is not a stopping result; it is a structural rejection of the current
+threshold-count world as a DTA decision surrogate. A future DTA planner must
+model how future studies change the cumulative evidence posterior, not merely
+how many relevant documents remain.

@@ -6,6 +6,7 @@ from gflowstop.core import ACTION_ACCEPT, ACTION_CONTINUE, ACTION_REJECT, CountM
 from gflowstop.toys import (
     ExactOracle,
     Episode,
+    K1RankPlan,
     PerfectInformationEnvironment,
     RankDecayEnvironment,
     RankLatentBelief,
@@ -14,8 +15,10 @@ from gflowstop.toys import (
     delayed_sequence_distribution,
     hindsight_flow_action,
     independent_sequence_distribution,
+    k1_rank_bellman,
     mixture_sequence_distribution,
     rank_belief_action,
+    zero_inflated_k1_rank_bellman,
     sample_episodes,
 )
 from gflowstop.toy_experiment import _failure_ucb, _qbcb_j
@@ -100,6 +103,46 @@ def test_rank_belief_full_horizon_matches_exact_oracle():
             observation = PolicyObservation(length, observation.depth + 1, observation.hits + label, threshold, scores, observation.history + (label,))
         _action, values = rank_belief_action(model, state, observation, q_star, cost, lookahead=length)
         assert np.allclose(values, exact_values, atol=1e-10)
+
+
+def test_k1_rank_bellman_matches_full_history_planner_on_miss_path():
+    length, q_star, cost = 7, 0.4, 0.03
+    model = RankLatentBelief(rank_edges=tuple(np.linspace(0.0, 1.0, length + 1)), use_scores=False, eta_points=3)
+    model.rank_logits = np.linspace(-1.0, -2.0, length)
+    model.etas = np.array((-0.6, 0.0, 0.7))
+    model.prior = np.array((0.2, 0.5, 0.3))
+    model._probability_cache = model._tail_cache = None
+    root = PolicyObservation(length, 0, 0, 1, np.zeros(length), ())
+    plan = k1_rank_bellman(model, root, q_star, cost)
+    state = model.initial_state(root)
+    for depth in range(length + 1):
+        observation = PolicyObservation(length, depth, 0, 1, root.scores, (0,) * depth)
+        action, values = rank_belief_action(model, state, observation, q_star, cost, lookahead=length)
+        assert isinstance(plan, K1RankPlan)
+        assert plan.actions[depth] == action
+        assert np.allclose(plan.values[depth], values, atol=1e-10)
+        if depth < length:
+            state = model.update(state, observation, 0)
+
+
+def test_zero_inflated_k1_rank_bellman_matches_exact_oracle_on_miss_path():
+    length, q_star, cost, zero_mass = 6, 0.5, 0.02, 0.4
+    model = RankLatentBelief(rank_edges=tuple(np.linspace(0.0, 1.0, length + 1)), use_scores=False, eta_points=2)
+    model.rank_logits = np.linspace(-0.8, -1.8, length)
+    model.etas = np.array((-0.4, 0.5))
+    model.prior = np.array((0.35, 0.65))
+    model._probability_cache = model._tail_cache = None
+    root = PolicyObservation(length, 0, 0, 1, np.zeros(length), ())
+    sequences, probabilities = mixture_sequence_distribution(model._probability_matrix(root), model.prior)
+    probabilities *= 1.0 - zero_mass
+    probabilities[sequences.sum(axis=1) == 0] += zero_mass
+    oracle = ExactOracle(sequences, probabilities, 1, q_star, cost)
+    plan = zero_inflated_k1_rank_bellman(model, root, zero_mass, q_star, cost)
+    for depth in range(length + 1):
+        history = (0,) * depth
+        assert plan.actions[depth] == oracle.action(history)
+        assert np.allclose(plan.values[depth], oracle.q_values[history], atol=1e-10)
+    assert zero_inflated_k1_rank_bellman(model, root, 1.0, q_star, cost).actions[0] == ACTION_REJECT
 
 
 def test_rank_score_ablation_separates_mean_and_local_features():
