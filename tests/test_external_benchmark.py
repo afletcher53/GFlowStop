@@ -7,8 +7,9 @@ from pyarrow import Table, ipc
 
 from gflowstop.external_benchmark import _checkpoints, _published_repke_run, _recall_probability, evaluate_repke_rankings, load_repke_rankings, repke_ranking_from_frame
 from gflowstop.external_dta import evaluate_count_world_linkage, load_dta_split
+from gflowstop.external_horizon import _next_hit_log_loss, evaluate_horizon_sweep, main as horizon_main
 from gflowstop.external_utility import evaluate_external_greedy, evaluate_k1_split, fit_score_mean_prior
-from gflowstop.toys import Episode
+from gflowstop.toys import Episode, RankLatentBelief
 
 
 def _ranking(dataset: str, repeat: int, labels: list[int]):
@@ -110,6 +111,84 @@ def test_k1_utility_summary_scores_rejection_as_correct_for_zero_worlds():
         lambda rows: (rows.action == np.where(rows.world, 1, 2)).mean(), include_groups=False,
     )
     assert np.allclose(summary.set_index("method").decision_accuracy.sort_index(), expected.sort_index())
+
+
+def test_imposed_world_horizon_sweep_uses_train_fit_and_emits_root_diagnostics():
+    train = [
+        Episode(np.array(labels), np.linspace(1.0, 0.1, 4), {"topic": f"train-{index}"}, "test", index)
+        for index, labels in enumerate(([1, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0]))
+    ]
+    test = [
+        Episode(np.array(labels), np.linspace(0.9, 0.2, 4), {"topic": f"test-{index}"}, "test", index)
+        for index, labels in enumerate(([1, 0, 0, 0], [0, 0, 1, 0]))
+    ]
+
+    per_topic, summary, calibration, roots = evaluate_horizon_sweep(
+        train, test, train_sizes=(2, 4), horizons=(1, 2), q_stars=(0.5,), kappas=(0.1,), seed=7,
+    )
+
+    assert len(per_topic) == 8
+    assert per_topic.threshold.between(1, 4).all()
+    assert set(summary.h_star) <= {1, 2}
+    assert np.isfinite(calibration.next_hit_log_loss).all()
+    assert roots.root_continue_fraction.between(0.0, 1.0).all()
+
+
+def test_next_hit_log_loss_reuses_the_root_observation_without_changing_the_score():
+    episode = Episode(np.array([1, 0, 1, 0]), np.linspace(0.9, 0.2, 4), {}, "test", 0)
+    model = RankLatentBelief(use_scores=True, use_score_mean=False, use_local_scores=True).fit([episode])
+
+    expected, state, hits = [], model.initial_state(episode.observation(0, 0, 1)), 0
+    for depth, label in enumerate(episode.labels):
+        observation = episode.observation(depth, hits, 1)
+        probability = np.clip(model.next_hit_probability(state, observation), 1e-9, 1.0 - 1e-9)
+        expected.append(-np.log(probability if label else 1.0 - probability))
+        state = model.update(state, observation, int(label))
+        hits += int(label)
+
+    assert _next_hit_log_loss([episode], model) == np.mean(expected)
+
+
+def test_imposed_world_horizon_respects_reached_threshold_certificate():
+    episode = Episode(np.array([1, 0]), np.array([1.0, 0.0]), {"topic": "test"}, "test", 0)
+    per_topic, _summary, _calibration, _roots = evaluate_horizon_sweep(
+        [episode, Episode(np.array([0, 0]), np.array([1.0, 0.0]), {"topic": "train"}, "test", 1)], [episode],
+        train_sizes=(2,), horizons=(2,), q_stars=(0.5,), kappas=(0.0,), seed=3,
+    )
+    assert per_topic.action.item() == 1
+
+
+def test_imposed_world_horizon_command_writes_auditable_artifacts(tmp_path):
+    train_csv, test_csv, output_dir = tmp_path / "train.csv", tmp_path / "test.csv", tmp_path / "results"
+    pd.DataFrame({
+        "Topic": ["a"] * 4 + ["b"] * 4,
+        "Rank": list(range(1, 5)) * 2,
+        "Score": list(np.linspace(1.0, 0.1, 4)) * 2,
+        "label": [1, 0, 0, 0, 0, 1, 0, 0],
+    }).to_csv(train_csv, index=False)
+    pd.DataFrame({
+        "Topic": ["c"] * 4 + ["d"] * 4,
+        "Rank": list(range(1, 5)) * 2,
+        "Score": list(np.linspace(1.0, 0.1, 4)) * 2,
+        "label": [0, 0, 1, 0, 0, 0, 0, 0],
+    }).to_csv(test_csv, index=False)
+
+    horizon_main([str(train_csv), str(test_csv), "--output-dir", str(output_dir), "--train-sizes", "2", "--horizons", "1", "--q-stars", "0.5", "--kappas", "0.1", "--expected-train-topics", "2", "--expected-test-topics", "2", "--require-common-length"])
+
+    assert {path.name for path in output_dir.iterdir()} == {"per_topic.csv", "utility_summary.csv", "calibration.csv", "root_diagnostics.csv", "gates.json", "metadata.json"}
+    assert json.loads((output_dir / "gates.json").read_text())["root_diagnostics"]["status"] == "inspect_before_interpreting_horizon_curve"
+
+
+def test_imposed_world_preflight_does_not_write_a_utility_curve(tmp_path):
+    train_csv, test_csv, output_dir = tmp_path / "train.csv", tmp_path / "test.csv", tmp_path / "preflight"
+    frame = pd.DataFrame({"Topic": ["a"] * 4 + ["b"] * 4, "Rank": list(range(1, 5)) * 2, "Score": [1.0, 0.7, 0.4, 0.1] * 2, "label": [1, 0, 0, 0, 0, 1, 0, 0]})
+    frame.to_csv(train_csv, index=False)
+    frame.assign(Topic=["c"] * 4 + ["d"] * 4).to_csv(test_csv, index=False)
+
+    horizon_main([str(train_csv), str(test_csv), "--output-dir", str(output_dir), "--train-sizes", "2", "--horizons", "1,2", "--q-stars", "0.5", "--kappas", "0.1", "--root-only", "--expected-train-topics", "2", "--expected-test-topics", "2", "--require-common-length"])
+
+    assert not (output_dir / "utility_summary.csv").exists()
+    assert json.loads((output_dir / "gates.json").read_text())["root_diagnostics"]["status"] == "preflight_complete"
 
 
 def test_external_greedy_runner_calls_the_supplied_implementation(tmp_path):

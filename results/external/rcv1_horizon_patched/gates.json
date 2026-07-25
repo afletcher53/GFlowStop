@@ -1,0 +1,7 @@
+{
+  "root_diagnostics": {
+    "status": "inspect_before_interpreting_horizon_curve",
+    "file": "root_diagnostics.csv",
+    "note": "These are fitted-belief diagnostics, not an oracle for real rankings."
+  }
+}
