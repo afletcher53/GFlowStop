@@ -24,13 +24,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from gflowstop import tar_flow
 from gflowstop.flow import FlowStoppingNetwork
 from gflowstop.tar_flow import FlowStopPolicy, RecallChains, RecallFlowEnsemble, RecallFlowNetwork, training_chains
 
 COLLECTIONS = ("clef2017", "clef2018", "clef2019")
 RUN_YEAR = {"clef2017": "2017", "clef2018": "2018", "clef2019": None}
 TARGETS = (0.8, 0.9, 0.95)
-PENALTIES = (0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0)
+PENALTIES = (0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0, 256.0)
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,9 @@ class Config:
     runs: bool = True
     run_weight: float = 0.25
     reliability_goal: float = 0.95
+    selection: str = "stable"
+    max_penalty: float = 256.0
+    power_features: bool = True
     seed: int = 0
     ensemble: int = 3
 
@@ -92,7 +96,7 @@ def fit(rankings: list[np.ndarray], weights: list[float], config: Config):
     if config.model == "structured":
         members = []
         for seed in range(config.seed, config.seed + config.ensemble):
-            data = RecallChains.build(rankings, TARGETS, copies=config.copies, seed=seed, weights=weights)
+            data = RecallChains.build(rankings, TARGETS, (0.25, config.max_penalty), copies=config.copies, seed=seed, weights=weights)
             members.append(RecallFlowNetwork(
                 beta=config.beta, hidden=config.hidden, rounds=config.rounds, steps=config.steps, batch_size=config.batch_size,
                 learning_rate=config.learning_rate, weight_decay=config.weight_decay, seed=seed, aggregator=config.aggregator,
@@ -107,7 +111,7 @@ def fit(rankings: list[np.ndarray], weights: list[float], config: Config):
     return network.fit(data)
 
 
-def stops(network: FlowStoppingNetwork, collection: str, rankings: dict, penalties=PENALTIES) -> pd.DataFrame:
+def stops(network, collection: str, rankings: dict, penalties=PENALTIES) -> pd.DataFrame:
     rows = []
     for qid, labels in rankings.items():
         relevant = int(np.sum(labels > 0))
@@ -122,13 +126,25 @@ def stops(network: FlowStoppingNetwork, collection: str, rankings: dict, penalti
     return pd.DataFrame(rows)
 
 
-def select_penalties(validation: pd.DataFrame, goal: float) -> dict[float, float]:
-    """Per target, the cheapest penalty whose pooled validation reliability reaches ``goal`` (else the largest)."""
+def select_penalties(validation: pd.DataFrame, goal: float, rule: str = "stable") -> dict[float, float]:
+    """Per target, the penalty to deploy, from pooled validation reliability.
+
+    ``rule='cheapest'`` (the first evaluation): the cheapest penalty whose
+    reliability reaches ``goal``. ``rule='stable'``: the smallest penalty from
+    which reliability stays at or above ``goal`` for every larger penalty, so
+    one lucky dip on about sixty topics cannot be chosen. Either falls back to
+    the largest penalty.
+    """
     chosen = {}
     for target, frame in validation.groupby("target"):
         summary = frame.groupby("penalty").agg(reliable=("reliable", "mean"), review=("review_fraction", "mean")).sort_index()
-        passing = summary.loc[summary.reliable >= goal]
-        chosen[float(target)] = float(passing.review.idxmin() if len(passing) else summary.index.max())
+        if rule == "cheapest":
+            passing = summary.loc[summary.reliable >= goal]
+            chosen[float(target)] = float(passing.review.idxmin() if len(passing) else summary.index.max())
+        else:
+            failing = summary.index[summary.reliable < goal]
+            above = summary.index[summary.index > failing.max()] if len(failing) else summary.index
+            chosen[float(target)] = float(above.min() if len(above) else summary.index.max())
     return chosen
 
 
@@ -152,6 +168,8 @@ def main() -> None:
 
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "config.json").write_text(json.dumps(asdict(config), indent=2) + "\n")
+    tar_flow.POWER_FEATURES = config.power_features
+    penalties = tuple(penalty for penalty in PENALTIES if penalty <= config.max_penalty)
     collections, runs = load(args.data)
     grid, selected, choices = [], [], {}
     for test in args.test:
@@ -162,13 +180,15 @@ def main() -> None:
                 continue
             rankings, weights = training_set(collections, runs, {test, inner}, config)
             network = fit(rankings, weights, config)
-            validation.append(stops(network, inner, collections[inner]))
-        chosen = select_penalties(pd.concat(validation), config.reliability_goal)
+            validation.append(stops(network, inner, collections[inner], penalties))
+        validation = pd.concat(validation, ignore_index=True)
+        validation.assign(test=test).to_csv(args.output / f"validation-{test}.csv", index=False)
+        chosen = select_penalties(validation, config.reliability_goal, config.selection)
         rankings, weights = training_set(collections, runs, {test}, config)
         network = fit(rankings, weights, config)
         with open(args.output / f"network-{test}.pkl", "wb") as handle:
             pickle.dump(network, handle)
-        frame = stops(network, test, collections[test])
+        frame = stops(network, test, collections[test], penalties)
         grid.append(frame)
         picks = frame.loc[[chosen[target] == penalty for target, penalty in zip(frame.target, frame.penalty)]]
         selected.append(picks)

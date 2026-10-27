@@ -69,8 +69,12 @@ def train_rlstop(data: Path, output: Path, timesteps: int) -> dict:
     frames = {name: pd.read_parquet(data / f"{name}.parquet") for name in (*COLLECTIONS, "clef2017train")}
     policies = {}
     for test in COLLECTIONS:
-        training = pd.concat([frame for name, frame in frames.items() if name != test], ignore_index=True)
-        training = training.loc[~training.qid.isin(set(frames[test].qid))]
+        parts, seen = [], set(frames[test].qid)
+        for name, frame in frames.items():
+            if name != test:
+                parts.append(frame.loc[~frame.qid.isin(seen)])  # a topic judged in two collections is used once
+                seen |= set(frame.qid)
+        training = pd.concat(parts, ignore_index=True)
         sizes = training.groupby("qid").size()
         training = training.loc[training.qid.isin(sizes.index[sizes >= 100])]
         for target in TARGETS:

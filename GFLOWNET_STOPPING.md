@@ -162,3 +162,40 @@ point on it uses test labels.
 Ablations under the same protocol, with no gate: hindsight continue targets
 (the original fixed-chain flow), one-step myopic targets, and `beta = inf`
 (hard policy iteration).
+
+## Results of the declared evaluation (revision 1)
+
+Written after the run, against the gates above. Configuration
+`results/flow/v1/config.json` (28 base features, the `cheapest` penalty rule,
+penalties up to 64). Pooled over the 91 test topics, at the penalty chosen by
+inner validation:
+
+| Target | Reliability | Mean review | IP-H (`tail='model'`) reliability / review |
+| --- | --- | --- | --- |
+| 0.8 | 96.7% | 13.1% | 100.0% / 17.6% |
+| 0.9 | 95.6% | 19.7% | 97.8% / 18.5% |
+| 0.95 | 95.6% | 32.2% | 97.8% / 20.0% |
+
+It does not beat IP-H (`tail='model'`) at any target. At 0.8 it reviews less but
+is less reliable, which the gates count as a trade-off. The chosen penalties
+varied erratically between folds: for 2018 the penalty was 64 at target 0.8 but
+1 at 0.9. Inner validation picked a lucky low penalty from about sixty
+topics.
+
+## Revision 2 (declared before its run)
+
+Changes, decided after seeing revision 1's test rows and recorded here before
+revision 2 runs:
+
+1. Tail-fit features: a Poisson power-law rate fitted to the reviewed prefix
+   (the IP-P family) with a rough Poisson upper bound, and an exponential rate
+   fitted to the last half of the prefix, each as an estimated recall and its
+   log-odds margin from the target.
+2. Penalty selection `stable`: the smallest penalty from which pooled
+   validation reliability stays at or above 0.95 for every larger penalty.
+3. Penalty grid and training range extended to 256.
+
+Everything else, including the gates, is unchanged. Because these changes
+followed revision 1's test results, revision 2 is a second look at the same
+91 topics and not an independent confirmation; a held-out confirmation would
+need another collection.

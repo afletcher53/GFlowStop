@@ -31,6 +31,7 @@ RATE_WINDOWS = (10, 25, 50, 100, 200)
 REMAINING_FRACTIONS = (0.02, 0.05, 0.1)
 MINIMUM_WINDOW = 5
 FIT_BINS = 20
+POWER_FEATURES = True  # power-law tail fits; False reproduces the first evaluation's 28 base features
 
 
 def checkpoints(length: int, count: int = CHECKPOINTS) -> np.ndarray:
@@ -45,21 +46,29 @@ def _window_rates(cumulative: np.ndarray, depths: np.ndarray, windows: np.ndarra
     return (cumulative[depths] - cumulative[depths - windows]) / windows
 
 
-def _exponential_tail(cumulative: np.ndarray, depths: np.ndarray, length: int) -> tuple[np.ndarray, np.ndarray]:
-    """Expected relevant documents after each depth under a log-linear rate fitted to the reviewed prefix.
+def _fitted_tail(
+    cumulative: np.ndarray, depths: np.ndarray, length: int, family: str, start: float = 0.0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Expected relevant documents after each depth under a rate fitted to the reviewed prefix.
 
     The prefix is cut into ``FIT_BINS`` equal bins and their counts fitted by
-    Poisson regression of ``log rate = a + b * position / length`` (a few
-    Newton steps, ridge-stabilised). Returns the remaining-count estimate,
-    capped at the unreviewed documents, and the fitted decay ``b``.
+    Poisson regression of ``log rate = a + b * z``, with ``z`` the position as a
+    fraction of the ranking (``family='exponential'``) or its logarithm
+    (``family='power'``, the point-process rate of IP-P), by a few
+    ridge-stabilised Newton steps. Returns the remaining-count estimate, capped
+    at the unreviewed documents, and the fitted slope ``b``. ``start`` fits only
+    the reviewed documents after that fraction of the prefix (a local fit).
     """
-    edges = np.rint(depths[:, None] * np.arange(FIT_BINS + 1)[None, :] / FIT_BINS).astype(int)
+    first = np.floor(depths * start)
+    edges = np.rint(first[:, None] + (depths - first)[:, None] * np.arange(FIT_BINS + 1)[None, :] / FIT_BINS).astype(int)
     counts = (cumulative[edges[:, 1:]] - cumulative[edges[:, :-1]]).astype(float)
     widths = np.maximum(edges[:, 1:] - edges[:, :-1], 1).astype(float)
     centres = (edges[:, 1:] + edges[:, :-1]) / 2.0 / length
+    if family == "power":
+        centres = np.log(np.maximum(centres, 0.5 / length))
     valid = edges[:, 1:] > edges[:, :-1]
     total = counts.sum(axis=1)
-    a = np.log((total + 0.5) / depths)
+    a = np.log((total + 0.5) / np.maximum(depths - first, 1))
     b = np.zeros(len(depths))
     for _ in range(12):
         mu = np.where(valid, widths * np.exp(np.clip(a[:, None] + b[:, None] * centres, -50, 50)), 0.0)
@@ -71,15 +80,25 @@ def _exponential_tail(cumulative: np.ndarray, depths: np.ndarray, length: int) -
         det = h_aa * h_bb - h_ab * h_ab
         a = a + (h_bb * grad_a - h_ab * grad_b) / det
         b = np.clip(b + (h_aa * grad_b - h_ab * grad_a) / det, -500.0, 50.0)
-    start, stop = depths / length, 1.0
-    # integral of exp(a + b x) over [start, 1], in documents
-    small = np.abs(b) < 1e-6
-    span = np.where(small, stop - start, (np.exp(np.clip(b * stop, -50, 50)) - np.exp(np.clip(b * start, -50, 50))) / np.where(small, 1.0, b))
+    start = depths / length  # the tail is integrated from the current depth whatever the fitted span
+    if family == "power":
+        # integral of exp(a) x^b over [start, 1], in documents
+        power = b + 1.0
+        near = np.abs(power) < 1e-6
+        span = np.where(near, -np.log(start), (1.0 - np.exp(np.clip(power * np.log(start), -50, 50))) / np.where(near, 1.0, power))
+    else:
+        # integral of exp(a + b x) over [start, 1], in documents
+        small = np.abs(b) < 1e-6
+        span = np.where(small, 1.0 - start, (np.exp(np.clip(b, -50, 50)) - np.exp(np.clip(b * start, -50, 50))) / np.where(small, 1.0, b))
     remaining = np.minimum(np.exp(np.clip(a, -50, 50)) * length * span, length - depths)
     return np.maximum(remaining, 0.0), b
 
 
-def base_features(labels: np.ndarray, length: int, depths: np.ndarray) -> np.ndarray:
+def _exponential_tail(cumulative: np.ndarray, depths: np.ndarray, length: int) -> tuple[np.ndarray, np.ndarray]:
+    return _fitted_tail(cumulative, depths, length, "exponential")
+
+
+def base_features(labels: np.ndarray, length: int, depths: np.ndarray, power: bool | None = None) -> np.ndarray:
     """Target-independent observable state at each depth, reading only ``labels[:depth]``.
 
     ``labels`` may be a prefix of the ranking; ``length`` is the full ranking's
@@ -105,6 +124,17 @@ def base_features(labels: np.ndarray, length: int, depths: np.ndarray) -> np.nda
         expected = _window_rates(cumulative, depths, window) * remaining
         estimates += [np.log1p(expected) - np.log1p(found), np.where(found + expected > 0, found / np.maximum(found + expected, 1e-12), 0.0)]
     tail, decay = _exponential_tail(cumulative, depths, length)
+    power_tail, power_slope = _fitted_tail(cumulative, depths, length, "power")
+    local_tail, _ = _fitted_tail(cumulative, depths, length, "exponential", start=0.5)
+    upper = power_tail + 2.0 * np.sqrt(power_tail) + 1.0  # a rough Poisson upper bound on what remains
+    power_features = [
+        np.log1p(power_tail) - np.log1p(found),
+        np.where(found + power_tail > 0, found / np.maximum(found + power_tail, 1e-12), 0.0),
+        found / (found + upper),
+        np.tanh(power_slope / 5.0),
+        np.log1p(local_tail) - np.log1p(found),
+        np.where(found + local_tail > 0, found / np.maximum(found + local_tail, 1e-12), 0.0),
+    ] if (POWER_FEATURES if power is None else power) else []
     half = cumulative[depths] - cumulative[depths // 2]
     tenth = cumulative[depths] - cumulative[depths - np.maximum(1, depths // 10)]
     return np.column_stack(
@@ -124,16 +154,19 @@ def base_features(labels: np.ndarray, length: int, depths: np.ndarray) -> np.nda
             np.tanh(decay / 50.0),
             half / np.maximum(found, 1.0),
             tenth / np.maximum(found, 1.0),
+            *power_features,
         ]
     ).astype(np.float32)
 
 
 ESTIMATED_RECALL_COLUMNS = (18, 20, 22, 24)  # window-rate and fitted-decay recall estimates in base_features
+POWER_RECALL_COLUMNS = (29, 30, 33)  # power-law fit, its Poisson upper bound, local exponential fit (POWER_FEATURES)
 
 
 def with_operating_point(base: np.ndarray, target: float, penalty: float) -> np.ndarray:
     """Append how far each estimated recall is from the target (log-odds), then the target and penalty."""
-    estimated = np.clip(base[:, ESTIMATED_RECALL_COLUMNS], 1e-4, 1 - 1e-4)
+    columns = ESTIMATED_RECALL_COLUMNS + (POWER_RECALL_COLUMNS if base.shape[1] > 28 else ())
+    estimated = np.clip(base[:, columns], 1e-4, 1 - 1e-4)
     margin = np.log(estimated / (1 - estimated)) - np.log(target / (1 - target))
     return np.c_[base, margin / 4.0, np.full((len(base), 2), (target, np.log(penalty) / 4.0))].astype(np.float32)
 
@@ -145,10 +178,12 @@ def prefix_features(prefix: np.ndarray, length: int, target: float, penalty: flo
     return with_operating_point(base_features(prefix, length, np.array([len(prefix)])), target, penalty)[0]
 
 
-def ranking_features(labels: np.ndarray, target: float, penalty: float, count: int = CHECKPOINTS) -> tuple[np.ndarray, np.ndarray]:
+def ranking_features(
+    labels: np.ndarray, target: float, penalty: float, count: int = CHECKPOINTS, power: bool | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
     """Features at every checkpoint of one ranking; each row reads only its own reviewed prefix."""
     depths = checkpoints(len(labels), count)
-    return depths, with_operating_point(base_features(labels, len(labels), depths), target, penalty)
+    return depths, with_operating_point(base_features(labels, len(labels), depths, power), target, penalty)
 
 
 def stop_utilities(labels: np.ndarray, depths: np.ndarray, target: float, penalty: float) -> np.ndarray:
@@ -229,7 +264,9 @@ class FlowStopPolicy:
 
     def stop_probabilities(self, labels: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """``P_F(stop)`` at every checkpoint, the reviewer's stopping indicator."""
-        depths, features = ranking_features(labels, self.target, self.penalty, self.count)
+        network = self.network.members[0] if isinstance(self.network, RecallFlowEnsemble) else self.network
+        power = None if not hasattr(network, "mean_") else len(network.mean_) != 34  # 34 inputs: trained without tail fits
+        depths, features = ranking_features(labels, self.target, self.penalty, self.count, power)
         if isinstance(self.network, (RecallFlowNetwork, RecallFlowEnsemble)):
             review_next = np.r_[depths[1:], len(labels)] / len(labels)
             return depths, self.network.stop_probabilities(features, depths / len(labels), review_next, self.penalty, depths < len(labels))
