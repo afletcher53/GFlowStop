@@ -301,3 +301,49 @@ targets.
 * Revision 3 is a second look at the same 91 topics, and its 2019 fold also
   guided feature design. Confirmation needs another collection, such as
   SYNERGY with pyterrier-tar's rankings, or TREC Total Recall.
+
+## Ablations (revision 3 settings, one seed, no penalty selection)
+
+Each variant changes only the continue targets of the reward-structured network,
+with the same features, thinning and data. One seed each and frontiers only:
+inner validation is skipped, so these grids are descriptive. The table gives the
+least mean review on the penalty grid at which pooled reliability reaches 95%,
+97.8% (IP-H `tail='model'` at 0.9 and 0.95), and 100%, and the best reliability
+reached at any penalty (`results/flow/ablations/`).
+
+| Continue target | Target | Review at ≥95% | at ≥97.8% | at 100% | Best reliability |
+| --- | --- | --- | --- | --- | --- |
+| geometric, soft policy iteration (`beta = 1e4`) | 0.8 | 8.2% | 9.0% | 11.4% | 100% |
+| | 0.9 | 17.1% | 25.3% | – | 98.9% |
+| | 0.95 | 28.3% | 38.6% | 55.0% | 100% |
+| geometric, `beta = inf` | 0.8 | 8.1% | 8.8% | 11.0% | 100% |
+| | 0.9 | 15.2% | 26.1% | – | 98.9% |
+| | 0.95 | 22.0% | 29.7% | 46.1% | 100% |
+| hindsight (fixed chain, best future stop) | 0.8 | 10.8% | 10.8% | 10.8% | 100% |
+| | 0.9 | 20.2% | 23.7% | 45.2% | 100% |
+| | 0.95 | 22.7% | 37.3% | 51.0% | 100% |
+| myopic (one checkpoint ahead) | 0.8 | – | – | – | 64.8% |
+| | 0.9 | – | – | – | 50.5% |
+| | 0.95 | – | – | – | 46.2% |
+
+Reading:
+
+* **Looking more than one checkpoint ahead is essential.** The one-step
+  comparator stops early whatever the penalty, and never reaches more than
+  46–65% of topics.
+* **The entropy (soft) part of the flow contributes nothing measurable at
+  `beta = 1e4`.** Hard policy iteration traces the same frontier, within
+  single-seed noise. On CLEF the flow network's value is its risk-neutral chance
+  nodes and multi-step evaluation, not the GFlowNet sampling temperature.
+* **The fixed-chain hindsight target behaves as its algebra predicts.** At every
+  penalty it continues longer than the geometric network, because it prices
+  continuing as if the best future stop could be chosen with the future labels
+  in hand. Since the penalty is a free knob, its frontier is not uniformly worse
+  on CLEF: worse at the 95% level, better near 100% at target 0.9. What the
+  risk-neutral construction buys there is a penalty with its decision-theoretic
+  meaning (the cost of a miss in units of review), which the hindsight
+  network's penalty does not have. The exact toys show the same bias as lost
+  utility at a fixed reward.
+* The three-seed ensemble of revision 3 traces a better frontier than the
+  single-seed geometric run. At target 0.9, a penalty of 8 gives 96.7% / 16.3%
+  against 94.5% / 13.9%.
