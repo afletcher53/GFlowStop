@@ -235,6 +235,7 @@ def main() -> None:
     parser.add_argument("--data", type=Path, default=Path("data/clef"))
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--test", nargs="+", default=list(COLLECTIONS))
+    parser.add_argument("--external", type=Path, help="score a model trained on all CLEF collections on this trajectory parquet instead")
     for field, default in asdict(Config()).items():
         kind = type(default)
         if kind is tuple:
@@ -252,11 +253,19 @@ def main() -> None:
     penalties = tuple(penalty for penalty in PENALTIES if penalty <= config.max_penalty)
     collections, runs = load(args.data)
     grid, selected, choices = [], [], {}
+    if args.external is not None:
+        if not config.bagging:
+            raise ValueError("an external test uses the bagged, out-of-bag-selected configuration")
+        external = args.external.stem
+        frame = pd.read_parquet(args.external)
+        collections[external] = {qid: group.sort_values("rank").label.to_numpy() for qid, group in frame.groupby("qid", sort=False)}
+        args.test = [external]
     for test in args.test:
         started = time.time()
         if config.bagging:
-            rankings, weights, topics = training_set(collections, runs, {test}, config, groups=True)
-            members, bags = fit_bagged(rankings, weights, topics, config, salt=COLLECTIONS.index(test))
+            held_out = {test} if test in COLLECTIONS else set()  # an external collection holds out nothing from CLEF
+            rankings, weights, topics = training_set(collections, runs, held_out, config, groups=True)
+            members, bags = fit_bagged(rankings, weights, topics, config, salt=COLLECTIONS.index(test) if test in COLLECTIONS else 3)
             with open(args.output / f"network-{test}.pkl", "wb") as handle:
                 pickle.dump(RecallFlowEnsemble(members), handle)
             with open(args.output / f"bags-{test}.json", "w") as handle:

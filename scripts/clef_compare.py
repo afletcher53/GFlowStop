@@ -60,16 +60,17 @@ class RLStopOrFullReview(tar.RLStop):
         yield from super()._iter_checkpoints(ranked, labels)
 
 
-def datasets(data: Path) -> list:
-    return [tar.ReplayDataset(name, "autotar", pd.read_parquet(data / f"{name}.parquet")) for name in COLLECTIONS]
+def datasets(data: Path, names=COLLECTIONS) -> list:
+    return [tar.ReplayDataset(name, "autotar", pd.read_parquet(data / f"{name}.parquet")) for name in names]
 
 
-def train_rlstop(data: Path, output: Path, timesteps: int) -> dict:
-    """One RLStop per held-out collection and target, trained on the other collections' AutoTAR topics."""
-    frames = {name: pd.read_parquet(data / f"{name}.parquet") for name in (*COLLECTIONS, "clef2017train")}
+def train_rlstop(data: Path, output: Path, timesteps: int, tests=COLLECTIONS, clef: Path | None = None) -> dict:
+    """One RLStop per test collection and target, trained on the AutoTAR topics of every other CLEF collection."""
+    clef = data if clef is None else clef
+    frames = {name: pd.read_parquet(clef / f"{name}.parquet") for name in (*COLLECTIONS, "clef2017train")}
     policies = {}
-    for test in COLLECTIONS:
-        parts, seen = [], set(frames[test].qid)
+    for test in tests:
+        parts, seen = [], set(frames[test].qid) if test in frames else set()
         for name, frame in frames.items():
             if name != test:
                 parts.append(frame.loc[~frame.qid.isin(seen)])  # a topic judged in two collections is used once
@@ -128,10 +129,12 @@ def main() -> None:
     parser.add_argument("--rlstop-timesteps", type=int, default=0, help="train RLStop with this many timesteps (0 skips it)")
     parser.add_argument("--grid", action="store_true", help="also replay every grid penalty of the first flow folder")
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--collections", nargs="+", default=list(COLLECTIONS), help="trajectory parquet names in --data")
+    parser.add_argument("--clef", type=Path, help="folder of the CLEF trajectories RLStop trains on (default: --data)")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     names = args.names or [folder.name for folder in args.flow]
-    replays = datasets(args.data)
+    replays = datasets(args.data, args.collections)
     # CD011686 is judged in both 2018 and 2019 with different qrels; its relevant count tells them apart.
     keys = [(dataset.name, qid, int(frame.label.sum())) for dataset in replays for qid, frame in dataset.trajectory.groupby("qid")]
     lookup = {(qid, relevant): name for name, qid, relevant in keys}
@@ -143,7 +146,7 @@ def main() -> None:
 
     rules = []
     for name, folder in zip(names, args.flow):
-        networks = {test: pickle.loads((folder / f"network-{test}.pkl").read_bytes()) for test in COLLECTIONS}
+        networks = {test: pickle.loads((folder / f"network-{test}.pkl").read_bytes()) for test in args.collections}
         penalties = json.loads((folder / "penalties.json").read_text())
 
         def factory(context, networks=networks, penalties=penalties):
@@ -161,7 +164,7 @@ def main() -> None:
                     return FlowStopRule(FlowStopPolicy(networks[collection(context.trajectory)], context.target, penalty))
                 rules.append(tar.RuleSpec(f"{name} penalty={penalty:g}", grid_factory, {"folder": str(folder), "penalty": penalty}, promise="policy"))
     if args.rlstop_timesteps:
-        policies = train_rlstop(args.data, args.output / "rlstop", args.rlstop_timesteps)
+        policies = train_rlstop(args.data, args.output / "rlstop", args.rlstop_timesteps, args.collections, args.clef)
         rules.append(tar.RuleSpec(
             "RLStop", lambda context: policies[collection(context.trajectory), context.target],
             {"timesteps": args.rlstop_timesteps, "training": "other collections' AutoTAR topics with >= 100 documents"}, promise="policy",

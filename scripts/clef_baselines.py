@@ -85,6 +85,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--certificates", action="store_true")
+    parser.add_argument("--collections", nargs="+", default=list(YEARS), help="trajectory parquet names in --data")
     args = parser.parse_args()
     if args.certificates:
         rules = [tar.RuleSpec(name, certificate_factory(name), {"confidence": CONFIDENCE, "sample": "minimum positive count"})
@@ -95,7 +96,7 @@ def main() -> None:
         rules += [tar.RuleSpec(name, lambda c, name=name: estimators(c.target, c.collection_size)[name](), {"defaults": True})
                   for name in estimators(0.9, 1)]
         seeds = (0,)
-    result = tar.run_experiment(datasets(args.data), rules, targets=TARGETS, seeds=seeds, output=args.output, n_jobs=args.jobs)
+    result = tar.run_experiment(datasets(args.data, args.collections), rules, targets=TARGETS, seeds=seeds, output=args.output, n_jobs=args.jobs)
     print(result.groupby(["rule", "target"])[["reliable", "review_fraction" if "review_fraction" in result else "cost"]].mean())
 
 
