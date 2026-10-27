@@ -68,6 +68,25 @@ mean is driven by rare large gains: 1,050 pairs favour horizon 1, 485 tie, and
 rule or a claim of external superiority. The ledger records the ranking hashes,
 fixed seed, implementation revision, and its pre-commit dirty-tree provenance.
 
+## Stopping flow network
+
+`GFLOWNET_STOPPING.md` describes a separate branch of work: a flow network that
+keeps GFlowNet flow matching at the reviewer's choices and aggregates the
+environment's chance nodes risk-neutrally (`src/gflowstop/flow.py`,
+`src/gflowstop/tar_flow.py`). On the exact toys it recovers the Bayes policy,
+where the fixed-chain and expected-flow constructions do not. On CLEF 2017–2019
+target-recall stopping (leave one collection out, scored by pyterrier-tar), it
+beats the published IP-H and its Cox variant at targets 0.8 and 0.9, but not
+IP-H with the model tail, IP-E, IP-P or ConsecutiveIrrelevant. The document
+records the predeclared gates, three revisions, and ablations.
+
+```bash
+.venv/bin/python scripts/build_clef_trajectories.py <rankings> <clef-tar> <auto-stop-tar> --output data/clef --runs
+.venv/bin/python scripts/clef_baselines.py --data data/clef --output runs/baselines
+.venv/bin/python scripts/clef_flow_experiment.py --data data/clef --output runs/flow --thinning 8
+.venv/bin/python scripts/clef_compare.py --data data/clef --flow runs/flow --names "GFlowStop" --baselines runs/baselines --output runs/compare --rlstop-timesteps 100000
+```
+
 ## Scope
 
 The exact beta-binomial teacher is the coherent chain baseline. The toy suite adds a rank-aware latent belief planner; its results must pass the listed synthetic gates before Vaswani or other real collections are used as evidence. A fixed chain still has no reward-proportional flow objective: an evidence-set GFlowNet remains a separate research branch, not a relabeling of hindsight targets.
