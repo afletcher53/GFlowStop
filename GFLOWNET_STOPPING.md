@@ -373,3 +373,26 @@ built and how the operating point is chosen:
    0.9 and 0.95.
 
 The gates are unchanged. Revision 4 is a third look at the same 91 topics.
+
+## External test on SYNERGY (declared before any SYNERGY result)
+
+All CLEF numbers above come from collections that also guided the design. The
+external test uses a collection that played no part in development:
+
+* **Data.** ASReview SYNERGY 1.0, 26 reviews and about 169,000 records, read
+  through pyterrier-tar's pinned `SynergyDataset`, with final-inclusion labels.
+  SYNERGY has no released rankings, so `scripts/build_synergy_rankings.py`
+  ranks each review by simulating AutoTAR, the procedure behind the CLEF
+  rankings: TF-IDF features, the review title as a synthetic seed,
+  logistic regression with 100 random pseudo-negatives, and batches growing by
+  a tenth. Seed 0, fixed before any stopping result.
+* **Method.** Revision 4 exactly as declared above. Ten subbagged members are
+  trained on every CLEF ranking (2017–2019 AutoTAR, the extra 2017 topics,
+  participant runs and thinned sub-pools). Penalties and aggregation are chosen
+  out-of-bag on CLEF topics only. SYNERGY labels are used only to score stops.
+  The method is applied whatever revision 4 scores on CLEF.
+* **Comparisons.** The same pyterrier-tar rules as on CLEF, replayed on the
+  same SYNERGY rankings, and RLStop trained on every CLEF AutoTAR topic.
+* **Gates.** As for CLEF, over the 26 reviews: lower mean review with the
+  paired 95% interval below zero, and reliability at least the baseline's.
+  With 26 reviews, one review is 3.8 points of reliability.
