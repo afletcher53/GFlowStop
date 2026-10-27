@@ -1,0 +1,366 @@
+[
+  {
+    "year": 2017,
+    "run": "AMC/amc.run.res",
+    "sha256": "3065c1af7823fe07d75515a27249ae347b86a736ec0e1ee16bf19f8d51e27ab8",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "AUTH/run-1",
+    "sha256": "a01e92b79d6440e8f6cc5c43f8fa4a7fa2822cd825b1196a1ae96610be73b3fe",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "AUTH/run-2",
+    "sha256": "65552461f01e48da9ca1dbd7a33eea103c9c75aff2b39ff91ee8d87b395382cf",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "AUTH/run-3",
+    "sha256": "de0fe3faac2634eed4c2752fe62304484e04b48ed0ffbe7251ce344c39717a9b",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "AUTH/run-4",
+    "sha256": "559373c87a4cf1c5b1d673efd1c1a3f9e8fdc14dc5dd3a51342fbbbafa30f0f9",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Baseline/pubmed.random.res",
+    "sha256": "4872b5fb5e5bbe19f5dbc4759127192250d4cc84517f82eaeac12895c30b3afb",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Baseline/sis.BM25.res",
+    "sha256": "c58e129cb53368c9da733b6d3da27da03dc02e950d9fcf9edbe28ddf93fb5d5a",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "CNRS/trec_abrupt_ALL",
+    "sha256": "07be6f40dd184e4061e617b307cf0a59a1dea3a881e7e02a4cbe2422dbbf595c",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "CNRS/trec_gradual_ALL",
+    "sha256": "d10a6e058356d526f01b56f5af0b08938fb59bc9900745654250cc7bcc774304",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "CNRS/trec_no_AF_ALL",
+    "sha256": "f8d27dfab61f205ff94c170198f01bfbf2ec63e6351d8e39d71eabe8e3941147",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "CNRS/trec_no_AF_full_ALL",
+    "sha256": "19caebedae65d7b85075921a883bbd6bd8025496d8aaf664bcf995a156981a24",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "ECNU/run1.res.txt",
+    "sha256": "9f55d68b088439173bf65edf60d02acedb3b48335f3b577c65b383a900bf73d5",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "NTU/test_ranked_run_1.txt",
+    "sha256": "983b0f557f7bed527fceb838a263805b897763a20b956de3740452fb2199b3cd",
+    "topics": 30,
+    "omitted_relevant": 62
+  },
+  {
+    "year": 2017,
+    "run": "NTU/test_ranked_run_2.txt",
+    "sha256": "47538961249d5c6e5ab1a6025a7fb7f2e2f55b03329b4c46aae6801b818eeb6b",
+    "topics": 30,
+    "omitted_relevant": 62
+  },
+  {
+    "year": 2017,
+    "run": "NTU/test_ranked_run_3.txt",
+    "sha256": "f4992fa3757280739ea4547ab188484434bc02ff5fd3b6ce7fcfa5fd6719457d",
+    "topics": 30,
+    "omitted_relevant": 62
+  },
+  {
+    "year": 2017,
+    "run": "Padua/ims_iafa_m10k150f0m10",
+    "sha256": "facdd4a5287e3569046c3f8525587f394263d840e423028a50075a6d87b69131",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Padua/ims_iafap_m10p2f0m10",
+    "sha256": "c02882376b185af1b14e37656b2690d0e5200395a39a76128bd398ab1ed76f7c",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Padua/ims_iafap_m10p5f0m10",
+    "sha256": "d4978cb78c642a81ea96491b52a1996781c536042462b10ee8a2efe43b31a7ec",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Padua/ims_iafas_m10k50f0m10",
+    "sha256": "bd484193db200d950de3ebe3043fc80734d290865cf4279787347365cdf0f868",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "QUT/coordinateascent_result_bool_ltr_test.txt",
+    "sha256": "44e868c0107049694d2cecec89388b1322bad3e8d022e57c6ced1a786b5de93a",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "QUT/coordinateascent_result_pico_ltr_test.txt",
+    "sha256": "13e2135962dec484600f718d496f5fa7ebc0433b6597d9379c29777ac73bb95a",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "QUT/randomforest_result_bool_ltr_test.txt",
+    "sha256": "2f7677a327218a8ccc72ff09604f20e235593a3229f252270fc1df1cf05c8264",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "QUT/randomforest_result_pico_ltr_test.txt",
+    "sha256": "251d9905626e9abe8e0c673a0895d4d341048c4d14f4744f4f34af0b2fa26818",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Sheffield/Test_Data_Sheffield-run-1",
+    "sha256": "b5f850d660bd925364c988da165ec2167b322020f7734cea055d333bf474dd77",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Sheffield/Test_Data_Sheffield-run-2",
+    "sha256": "e7c1e50a2e249758b3bfd679a1680a773291e2f0cb108079c6ffb87b45fc18f8",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Sheffield/Test_Data_Sheffield-run-3",
+    "sha256": "4745da32fb91c08f2c80e34452ac285b80aaef052fb4ebf32b44c8650620688d",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Sheffield/Test_Data_Sheffield-run-4",
+    "sha256": "73a58c3ec77d9cc6abeac496e5e495051e8bba328d02bdc3ed5486ac487cf63b",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "UCL/run_abstract_test.txt",
+    "sha256": "3c87a21a50ae4f6f5c475610a8bddf1aad8a2dd834933b50da30daa282f1b352",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "UCL/run_fulltext_test.txt",
+    "sha256": "94aa27cbebecf9853b31cd57cf0a416936e2b45ad849acc14e485ee0f2ddbee0",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "UOS-test/sis.TMAL30Q_BM25.res",
+    "sha256": "6aff9a485fde5b72dffa48f0f404b7fe41d4081cc01c82d31e00d6325c1fb195",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "UOS-test/sis.TMBEST_BM25.res",
+    "sha256": "6b79944c90b41c6ab7a00af5e1ca29f307a87f06dfe4ab402e8cf3d0c14d5bf1",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Waterloo/A-rank-normal.txt",
+    "sha256": "17f3b92cd6398e6c90aa39c402515a2d1f9f1c75b83869a7926eb5da4a6089c8",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2017,
+    "run": "Waterloo/B-rank-normal.txt",
+    "sha256": "59afdaf45a1cbab5bc6d9aaa3918e3d91bee397cce4b99f41cd0285ffd0de6e1",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "AUTh/auth_run1_All.task2",
+    "sha256": "8f92314a87372cafe7762f1a0e481c715247819ee8e96b38fe3ca72440e7cd64",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "AUTh/auth_run2_1000.task2",
+    "sha256": "6d0493eb9918ccd2dccee1c8fe57e229390ea7c9d2eddd4817033a7654d1502f",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "AUTh/auth_run3_1000.task2",
+    "sha256": "8cf8fbbca110adf15a3c77494ef21f9c1a0a2e1470972f2bc413e1b94336e73e",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "CNRS/cnrs_RF_bigram_ALL.task2",
+    "sha256": "f58e4032abb2fc50cf1abf279fa05cead492fd90681a9a119f9b867f9ba433f6",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "CNRS/cnrs_RF_unigram_ALL.task2",
+    "sha256": "8e73e92feb122ef3e2b84ce63c2a9a53b8d6c277a8ed12f9a649c8ce9e2ce6ee",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "CNRS/cnrs_combined_ALL.task2",
+    "sha256": "e9ac39bfc25798480d4d0d6d3254fe0e9884963c08096d3a161038f0fb6c5964",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "ECNU/ECNU_RUN1_TFIDF.task2",
+    "sha256": "5718980218a6e4ae8387247f2b140dcb9382d35988d000f3bfd95ff3b849a0ae",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "ECNU/ECNU_RUN2_LR.task2",
+    "sha256": "63ecc2c06763c7c23045fef40e87dba20f1a8ba02156c63192e893f008882542",
+    "topics": 30,
+    "omitted_relevant": 848
+  },
+  {
+    "year": 2018,
+    "run": "ECNU/ECNU_TASK2_RUN3_COMBINE.task2",
+    "sha256": "2ef663a2c14dd22a1e12741776cb01dca7e5e4b5de48ff8c4f5047fbe11830dd",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "IMS/ims_unipd_t1000.task2",
+    "sha256": "876500cbd9f39d34e897affd4f7981fed38dcf6b2db643689a8e4fbf4986963f",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "IMS/ims_unipd_t1500.task2",
+    "sha256": "410902dc07305daa23e609d85bd184e94291620788c81a79739edade8ea1d4e5",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "IMS/ims_unipd_t500.task2",
+    "sha256": "83d5085b2ec90a16efca98c79b2550a468e7a04651a7d4b8cd8624bfaf9687e2",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "SHEF/sheffield-feedback.task2",
+    "sha256": "8dbf6c39da0bce2400fb15b988a68879fadab4eea90571ac60e10aadb497cbac",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "SHEF/sheffield-general_terms.task2",
+    "sha256": "bf2beccd081ae263e595d1a38a2dcc537994c11fceb742a7e4e29f901f2b3ab6",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "SHEF/sheffield-query_terms.task2",
+    "sha256": "4d0fe321ddf2de1e9b6540a166f0ce578a24ffbb2db411b857ea4b5dce4beb2d",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "UIC/uci_model8.task2",
+    "sha256": "c8901fdda4805db8cdb779473ca193cf2bb8a1c618414e78d4776a43d71b78b7",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "UIC/uic_model7.task2",
+    "sha256": "9ba9f59f6f69d6dd43d97b572a880fdd9d030634a39f2d61547adf4a8d140611",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "UWaterloo/UWA.task2",
+    "sha256": "69610e8ba8a0f8c49c58f1e59516e10ebd13cf38ed5cb7b53c62cb54670caf88",
+    "topics": 30,
+    "omitted_relevant": 0
+  },
+  {
+    "year": 2018,
+    "run": "UWaterloo/UWB.task2",
+    "sha256": "48074313216be65e59b1deb802738f70b5fa58248ec4948e2cc52851318a2caf",
+    "topics": 30,
+    "omitted_relevant": 0
+  }
+]

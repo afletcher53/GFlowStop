@@ -54,6 +54,7 @@ class Config:
     max_penalty: float = 256.0
     power_features: bool = True
     thinning: int = 0
+    inner: bool = True
     thinning_weight: float = 0.5
     seed: int = 0
     ensemble: int = 3
@@ -200,14 +201,17 @@ def main() -> None:
         started = time.time()
         validation = []
         for inner in COLLECTIONS:
-            if inner == test:
+            if inner == test or not config.inner:
                 continue
             rankings, weights = training_set(collections, runs, {test, inner}, config)
             network = fit(rankings, weights, config)
             validation.append(stops(network, inner, collections[inner], penalties))
-        validation = pd.concat(validation, ignore_index=True)
-        validation.assign(test=test).to_csv(args.output / f"validation-{test}.csv", index=False)
-        chosen = select_penalties(validation, config.reliability_goal, config.selection)
+        if validation:
+            validation = pd.concat(validation, ignore_index=True)
+            validation.assign(test=test).to_csv(args.output / f"validation-{test}.csv", index=False)
+            chosen = select_penalties(validation, config.reliability_goal, config.selection)
+        else:  # frontier only (ablations): no selection, report the largest penalty as a placeholder
+            chosen = {target: max(penalties) for target in TARGETS}
         rankings, weights = training_set(collections, runs, {test}, config)
         network = fit(rankings, weights, config)
         with open(args.output / f"network-{test}.pkl", "wb") as handle:

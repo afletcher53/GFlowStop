@@ -219,3 +219,85 @@ extra 2017 topics, validating on 2018. Thinning raised validation reliability
 from 96.7/90.0/86.7% to 100/93.3/93.3% at the three targets, for about one
 point more review. 2018 is a test collection in its own fold, so revision 3 is
 also a second look and not an independent confirmation.
+
+## Results of revision 3
+
+Configuration in `results/flow/v3/config.json`. Every row is pyterrier-tar's
+`run_experiment` on the same 91 topics (`results/flow/compare/`). Each cell is
+reliability (share of topics reaching the target) / mean review fraction.
+
+| Rule | 0.8 | 0.9 | 0.95 |
+| --- | --- | --- | --- |
+| **GFlowStop r3** (penalty from inner validation) | 95.6% / 8.2% | 92.3% / 12.6% | 93.4% / 18.2% |
+| GFlowStop r1 | 96.7% / 13.1% | 95.6% / 19.7% | 95.6% / 32.2% |
+| IP-H (published, `tail='released'`) | 93.4% / 16.1% | 90.1% / 16.8% | 89.0% / 18.1% |
+| IP-H, Cox (CX-H) | 93.4% / 17.8% | 91.2% / 19.0% | 87.9% / 19.9% |
+| IP-E | 98.9% / 17.1% | 95.6% / 18.0% | 94.5% / 19.4% |
+| IP-H (`tail='model'`) | 100% / 17.6% | 97.8% / 18.5% | 97.8% / 20.0% |
+| ConsecutiveIrrelevant | 100% / 20.8% | 97.8% / 20.8% | 95.6% / 20.8% |
+| IP-P | 100% / 27.7% | 100% / 28.6% | 100% / 28.9% |
+| RLStop (PPO, same training topics) | 62.6% / 6.6% | 65.9% / 9.1% | 73.6% / 11.2% |
+| Oracle (offline bound) | 100% / 5.1% | 100% / 6.5% | 100% / 7.8% |
+
+Against the gates, with paired topic-bootstrap 95% intervals for the review
+difference:
+
+* **It beats the published IP-H at 0.8 and 0.9.** It reviews 7.9 points less
+  [−10.3, −5.5] and 4.2 points less [−6.8, −1.3], with reliability +2.2 points
+  both times. At 0.95 review is equal (+0.1 [−2.9, +3.4]), so it is not a win
+  although reliability is 4.4 points higher.
+* **It beats CX-H at 0.8 and 0.9.** It reviews 9.6 points less [−12.1, −7.2]
+  and 6.4 points less [−9.2, −3.3], with reliability +2.2 and +1.1 points. At
+  0.95 review is equal (−1.7 [−4.8, +1.8]), with reliability +5.5 points.
+* **It does not beat IP-H (`tail='model'`), IP-E, IP-P or
+  ConsecutiveIrrelevant at any target.** It is 6–20 points cheaper at 0.8 and
+  0.9 than each of them, but misses the target on 1–7 more topics. That is a
+  trade-off, not a win.
+* **Against RLStop**, it reaches the target on 33, 26 and 20 points more topics,
+  for 1.6, 3.6 and 7.1 points more review.
+
+By collection at 0.9, reliability / review: 2017 96.7% / 9.8%, 2018 80.0% / 8.7%,
+2019 100% / 19.1%. IP-H (`tail='model'`) gets 100% / 16.3%, 93.3% / 17.4% and
+100% / 21.7%. The 2018 shortfall comes from penalty selection. Inner
+validation on 2017 and 2019 reached 95% at a penalty of 1, but 2018 is harder.
+Inner-validation reliability was above test reliability in every fold.
+
+The penalty grid (descriptive only, because reading it uses test labels; see
+`results/flow/clef_frontier_r3.png`) shows that the learned network itself is
+competitive with the best estimators:
+
+| Penalty | 0.8 | 0.9 | 0.95 |
+| --- | --- | --- | --- |
+| 4 | 100% / 11.2% | 95.6% / 13.2% | 93.4% / 16.6% |
+| 8 | 100% / 13.3% | 96.7% / 16.3% | 97.8% / 20.2% |
+| 16 | 100% / 15.4% | 97.8% / 20.8% | 97.8% / 25.4% |
+
+At target 0.8, every penalty from 4 upwards reaches all 91 topics with 2–6
+points less review than IP-H (`tail='model'`). At 0.9 and 0.95 the grid passes
+through IP-H (`tail='model'`)'s point without dominating it. The bottleneck is
+choosing the operating point from about sixty validation topics across
+collections that differ, not the flow network.
+
+A post-hoc sensitivity check, not a claim, changes only the reliability goal of
+the penalty selection. A goal of 0.975 gives 98.9% / 10.1%, 93.4% / 18.3% and
+94.5% / 36.9%. A goal of 0.99 gives 98.9% / 10.6%, 95.6% / 22.8% and 98.9% /
+38.9%. A stricter goal helps at 0.8 and makes selection erratic at the higher
+targets.
+
+### What this does and does not show
+
+* It shows that stopping can be posed as a flow network whose chance nodes
+  are aggregated risk-neutrally. In the exact toys this recovers the Bayes
+  policy, while the expected-flow and fixed-chain alternatives fail in the
+  directions their algebra predicts.
+* It shows that a learned version of that network, trained on about 70 CLEF
+  topics plus participant runs and thinned sub-pools, beats the published
+  IP-H estimator and its Cox variant at targets 0.8 and 0.9 under a
+  leave-one-collection-out protocol. It is far more reliable than RLStop
+  trained on the same topics.
+* It does not show superiority to the strongest estimators (IP-H with the
+  model tail, IP-E, IP-P) or to ConsecutiveIrrelevant.
+* It is not a recall certificate.
+* Revision 3 is a second look at the same 91 topics, and its 2019 fold also
+  guided feature design. Confirmation needs another collection, such as
+  SYNERGY with pyterrier-tar's rankings, or TREC Total Recall.

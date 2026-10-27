@@ -1,0 +1,26 @@
+{
+  "model": "structured",
+  "aggregator": "geometric",
+  "solver": "policy",
+  "beta": 10000.0,
+  "hidden": [
+    64,
+    64
+  ],
+  "rounds": 120,
+  "steps": 25,
+  "batch_size": 4096,
+  "learning_rate": 0.001,
+  "weight_decay": 1e-05,
+  "copies": 3,
+  "runs": true,
+  "run_weight": 0.25,
+  "reliability_goal": 0.95,
+  "selection": "stable",
+  "max_penalty": 256.0,
+  "power_features": true,
+  "thinning": 8,
+  "thinning_weight": 0.5,
+  "seed": 0,
+  "ensemble": 3
+}
