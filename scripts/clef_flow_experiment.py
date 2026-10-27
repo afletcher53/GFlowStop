@@ -6,7 +6,11 @@ the participant runs of years other than the test year. Any training ranking
 whose topic id is in the test collection is dropped. The miss penalty for
 each target is chosen by inner leave-one-collection-out over the two training
 collections: the cheapest penalty whose pooled validation reliability reaches
-``--reliability-goal``. Test labels are used only to score stops.
+``--reliability-goal``. With ``--bagging M`` it instead trains M members, each on
+a random ``--bag-fraction`` of the training topics (a topic's runs and thinned
+sub-pools go with it), and chooses the penalty and the ensemble aggregation from
+out-of-bag stops: every AutoTAR training topic scored by the members that never
+saw it. Test labels are used only to score stops.
 
 Writes, per test topic, the stop at every grid penalty (``grid.csv``, a
 descriptive frontier) and at the selected penalty (``selected.csv``), plus the
@@ -17,9 +21,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict, dataclass
 from pathlib import Path
+
+import pickle
 
 import numpy as np
 import pandas as pd
@@ -55,6 +63,9 @@ class Config:
     power_features: bool = True
     thinning: int = 0
     inner: bool = True
+    bagging: int = 0
+    bag_fraction: float = 0.7
+    workers: int = 4
     thinning_weight: float = 0.5
     seed: int = 0
     ensemble: int = 3
@@ -72,10 +83,14 @@ def load(data: Path) -> tuple[dict, dict]:
     return collections, runs
 
 
-def training_set(collections: dict, runs: dict, held_out: set[str], config: Config) -> tuple[list[np.ndarray], list[float]]:
-    """AutoTAR rankings of the non-held-out collections, the extra 2017 topics, and allowed runs."""
+def training_set(collections: dict, runs: dict, held_out: set[str], config: Config, groups: bool = False):
+    """AutoTAR rankings of the non-held-out collections, the extra 2017 topics, and allowed runs.
+
+    With ``groups``, also returns each ranking's topic id, which keeps a topic's
+    rankings together when bagging.
+    """
     excluded = {qid for name in held_out for qid in collections[name]}
-    rankings, weights = [], []
+    rankings, weights, topics = [], [], []
     for name in (*COLLECTIONS, "clef2017train"):
         if name in held_out:
             continue
@@ -83,6 +98,7 @@ def training_set(collections: dict, runs: dict, held_out: set[str], config: Conf
             if qid not in excluded:
                 rankings.append(labels)
                 weights.append(1.0)
+                topics.append(qid)
     if config.runs:
         blocked = {RUN_YEAR[name] for name in held_out}
         for year, items in runs.items():
@@ -92,7 +108,8 @@ def training_set(collections: dict, runs: dict, held_out: set[str], config: Conf
                 if qid not in excluded:
                     rankings.append(labels)
                     weights.append(config.run_weight)
-    return rankings, weights
+                    topics.append(qid)
+    return (rankings, weights, topics) if groups else (rankings, weights)
 
 
 def thinned(rankings: list[np.ndarray], weights: list[float], config: Config, seed: int) -> tuple[list[np.ndarray], list[float]]:
@@ -134,6 +151,46 @@ def fit(rankings: list[np.ndarray], weights: list[float], config: Config):
         solver=config.solver,
     )
     return network.fit(data)
+
+
+def _fit_member(task) -> RecallFlowNetwork:
+    rankings, weights, config, seed = task
+    import torch
+
+    torch.set_num_threads(1)
+    if config.thinning:
+        rankings, weights = thinned(rankings, weights, config, seed + 7919)
+    data = RecallChains.build(rankings, TARGETS, (0.25, config.max_penalty), copies=config.copies, seed=seed, weights=weights)
+    return RecallFlowNetwork(
+        beta=config.beta, hidden=config.hidden, rounds=config.rounds, steps=config.steps, batch_size=config.batch_size,
+        learning_rate=config.learning_rate, weight_decay=config.weight_decay, seed=seed, aggregator=config.aggregator,
+    ).fit(data)
+
+
+def fit_bagged(rankings: list[np.ndarray], weights: list[float], topics: list[str], config: Config, salt: int) -> tuple[list, list[set]]:
+    """``config.bagging`` members, each trained on a random share of the training topics, in parallel."""
+    rng = np.random.default_rng(config.seed + 1000 * salt)
+    unique = np.array(sorted(set(topics)))
+    tasks, bags = [], []
+    for member in range(config.bagging):
+        bag = set(rng.choice(unique, size=int(round(config.bag_fraction * len(unique))), replace=False))
+        chosen = [index for index, topic in enumerate(topics) if topic in bag]
+        tasks.append(([rankings[i] for i in chosen], [weights[i] for i in chosen], config, config.seed + 100 * salt + member))
+        bags.append(bag)
+    with ProcessPoolExecutor(max_workers=config.workers) as pool:
+        members = list(pool.map(_fit_member, tasks))
+    return members, bags
+
+
+def out_of_bag(members: list, bags: list[set], collections: dict, names: list[str], penalties, aggregation: str) -> pd.DataFrame:
+    """Stops of every AutoTAR topic of ``names`` by the ensemble of members that never trained on it."""
+    frames = []
+    for name in names:
+        for qid, labels in collections[name].items():
+            unseen = [member for member, bag in zip(members, bags) if qid not in bag]
+            if unseen:
+                frames.append(stops(RecallFlowEnsemble(unseen, aggregation), name, {qid: labels}, penalties))
+    return pd.concat(frames, ignore_index=True)
 
 
 def stops(network, collection: str, rankings: dict, penalties=PENALTIES) -> pd.DataFrame:
@@ -189,8 +246,6 @@ def main() -> None:
     args = parser.parse_args()
     config = Config(**{field: tuple(getattr(args, field)) if isinstance(default, tuple) else getattr(args, field)
                        for field, default in asdict(Config()).items()})
-    import pickle
-
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "config.json").write_text(json.dumps(asdict(config), indent=2) + "\n")
     tar_flow.POWER_FEATURES = config.power_features
@@ -199,6 +254,34 @@ def main() -> None:
     grid, selected, choices = [], [], {}
     for test in args.test:
         started = time.time()
+        if config.bagging:
+            rankings, weights, topics = training_set(collections, runs, {test}, config, groups=True)
+            members, bags = fit_bagged(rankings, weights, topics, config, salt=COLLECTIONS.index(test))
+            with open(args.output / f"network-{test}.pkl", "wb") as handle:
+                pickle.dump(RecallFlowEnsemble(members), handle)
+            with open(args.output / f"bags-{test}.json", "w") as handle:
+                json.dump([sorted(bag) for bag in bags], handle)
+            names = [name for name in (*COLLECTIONS, "clef2017train") if name != test]
+            plan, frames = {}, []
+            for aggregation in ("mean", "min"):
+                validation = out_of_bag(members, bags, collections, names, penalties, aggregation)
+                validation.assign(test=test, aggregation=aggregation).to_csv(args.output / f"validation-{test}-{aggregation}.csv", index=False)
+                for target, penalty in select_penalties(validation, config.reliability_goal, config.selection).items():
+                    rows = validation.loc[(validation.target == target) & (validation.penalty == penalty)]
+                    score = (rows.reliable.mean() >= config.reliability_goal, -rows.review_fraction.mean(), rows.reliable.mean())
+                    if target not in plan or score > plan[target][2]:
+                        plan[target] = (aggregation, penalty, score)
+                test_frame = stops(RecallFlowEnsemble(members, aggregation), test, collections[test], penalties)
+                frames.append(test_frame.assign(aggregation=aggregation))
+            frame = pd.concat(frames, ignore_index=True)
+            grid.append(frame)
+            picks = frame.loc[[(plan[target][0], plan[target][1]) == (aggregation, penalty)
+                               for target, aggregation, penalty in zip(frame.target, frame.aggregation, frame.penalty)]]
+            selected.append(picks)
+            choices[test] = {str(target): {"penalty": penalty, "aggregation": aggregation} for target, (aggregation, penalty, _) in plan.items()}
+            print(f"{test}: {choices[test]}; training rankings {len(rankings)}; {time.time() - started:.0f}s", flush=True)
+            print(picks.groupby("target")[["reliable", "review_fraction"]].mean().round(4).to_string(), flush=True)
+            continue
         validation = []
         for inner in COLLECTIONS:
             if inner == test or not config.inner:
@@ -224,8 +307,6 @@ def main() -> None:
         print(f"{test}: penalties {chosen}; training rankings {len(rankings)}; {time.time() - started:.0f}s", flush=True)
         print(picks.groupby("target")[["reliable", "review_fraction"]].mean().round(4).to_string(), flush=True)
     grid, selected = pd.concat(grid, ignore_index=True), pd.concat(selected, ignore_index=True)
-    import pickle
-
     grid.to_csv(args.output / "grid.csv", index=False)
     selected.to_csv(args.output / "selected.csv", index=False)
     (args.output / "penalties.json").write_text(json.dumps(choices, indent=2) + "\n")

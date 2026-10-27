@@ -25,7 +25,7 @@ import pandas as pd
 import pyterrier_tar as tar
 from pyterrier_tar.rules._base import _TrajectoryStoppingRule
 
-from gflowstop.tar_flow import FlowStopPolicy
+from gflowstop.tar_flow import FlowStopPolicy, RecallFlowEnsemble
 
 COLLECTIONS = ("clef2017", "clef2018", "clef2019")
 TARGETS = (0.8, 0.9, 0.95)
@@ -148,7 +148,11 @@ def main() -> None:
 
         def factory(context, networks=networks, penalties=penalties):
             test = collection(context.trajectory)
-            return FlowStopRule(FlowStopPolicy(networks[test], context.target, penalties[test][str(context.target)]))
+            choice = penalties[test][str(context.target)]
+            if isinstance(choice, dict):  # bagged runs also choose the ensemble aggregation
+                network = RecallFlowEnsemble(networks[test].members, choice["aggregation"])
+                return FlowStopRule(FlowStopPolicy(network, context.target, choice["penalty"]))
+            return FlowStopRule(FlowStopPolicy(networks[test], context.target, choice))
 
         rules.append(tar.RuleSpec(name, factory, {"folder": str(folder), "penalties": penalties}, promise="policy"))
         if args.grid and folder == args.flow[0]:

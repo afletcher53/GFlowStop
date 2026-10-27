@@ -234,18 +234,28 @@ def _stop_probability(stop: np.ndarray, cont: np.ndarray, can_continue: np.ndarr
 
 
 class RecallFlowEnsemble:
-    """Several independently trained networks whose flows are averaged in log space."""
+    """Several independently trained networks.
 
-    def __init__(self, members: list["RecallFlowNetwork"]) -> None:
+    ``aggregation='mean'`` averages their flows in log space. ``'min'`` stops
+    only when the least willing member's forward policy would stop, so members
+    that disagree (high epistemic uncertainty, e.g. an unfamiliar topic) keep
+    the reviewer going.
+    """
+
+    def __init__(self, members: list["RecallFlowNetwork"], aggregation: str = "mean") -> None:
         if not members or len({member.beta for member in members}) != 1:
             raise ValueError("an ensemble needs members with one beta")
-        self.members, self.beta = members, members[0].beta
+        if aggregation not in ("mean", "min"):
+            raise ValueError("aggregation must be 'mean' or 'min'")
+        self.members, self.beta, self.aggregation = members, members[0].beta, aggregation
 
     def values(self, features, review, review_next, penalty):
         outputs = [member.values(features, review, review_next, penalty) for member in self.members]
         return np.mean([stop for stop, _ in outputs], axis=0), np.mean([cont for _, cont in outputs], axis=0)
 
     def stop_probabilities(self, features, review, review_next, penalty, can_continue):
+        if getattr(self, "aggregation", "mean") == "min":
+            return np.min([member.stop_probabilities(features, review, review_next, penalty, can_continue) for member in self.members], axis=0)
         return _stop_probability(*self.values(features, review, review_next, penalty), can_continue, self.beta)
 
     def miss_probabilities(self, features):

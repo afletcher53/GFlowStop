@@ -347,3 +347,29 @@ Reading:
 * The three-seed ensemble of revision 3 traces a better frontier than the
   single-seed geometric run. At target 0.9, a penalty of 8 gives 96.7% / 16.3%
   against 94.5% / 13.9%.
+
+## Revision 4 (declared before its run)
+
+Revision 3's fixed-penalty frontier is competitive with the best estimators, but
+the penalty chosen by inner leave-one-collection-out was too aggressive in 2018.
+Its misses are confident early stops on unfamiliar topics. Revision 4 keeps
+revision 3's network, features and thinning, and changes how the ensemble is
+built and how the operating point is chosen:
+
+1. **Subbagging.** Ten members per test collection, each trained on a random
+   70% of the training topics. All of a topic's rankings (AutoTAR, participant
+   runs and thinned sub-pools) go in or out together.
+2. **Out-of-bag selection.** Every AutoTAR training topic is scored by the
+   members that never trained on it. The penalty for each target is chosen with
+   the `stable` rule on those roughly 70 topics. Revision 3 used two
+   inner-collection networks validated on about 60 topics, each trained on much
+   less data than the deployed network. No extra training is needed.
+3. **Cautious aggregation as a candidate.** Besides averaging flows (`mean`),
+   the ensemble may stop only when its least willing member's forward policy
+   would stop (`min`), so disagreement keeps the reviewer going. For each
+   target, the aggregation with the lower out-of-bag review among those meeting
+   the goal is deployed.
+4. **Reliability goal 0.975** (was 0.95), the level of IP-H (`tail='model'`) at
+   0.9 and 0.95.
+
+The gates are unchanged. Revision 4 is a third look at the same 91 topics.
