@@ -265,11 +265,16 @@ def main() -> None:
         if config.bagging:
             held_out = {test} if test in COLLECTIONS else set()  # an external collection holds out nothing from CLEF
             rankings, weights, topics = training_set(collections, runs, held_out, config, groups=True)
-            members, bags = fit_bagged(rankings, weights, topics, config, salt=COLLECTIONS.index(test) if test in COLLECTIONS else 3)
-            with open(args.output / f"network-{test}.pkl", "wb") as handle:
-                pickle.dump(RecallFlowEnsemble(members), handle)
-            with open(args.output / f"bags-{test}.json", "w") as handle:
-                json.dump([sorted(bag) for bag in bags], handle)
+            saved, saved_bags = args.output / f"network-{test}.pkl", args.output / f"bags-{test}.json"
+            if saved.exists() and saved_bags.exists():  # resume: a fold whose members were already trained
+                members = pickle.loads(saved.read_bytes()).members
+                bags = [set(bag) for bag in json.loads(saved_bags.read_text())]
+            else:
+                members, bags = fit_bagged(rankings, weights, topics, config, salt=COLLECTIONS.index(test) if test in COLLECTIONS else 3)
+                with open(saved, "wb") as handle:
+                    pickle.dump(RecallFlowEnsemble(members), handle)
+                with open(saved_bags, "w") as handle:
+                    json.dump([sorted(bag) for bag in bags], handle)
             names = [name for name in (*COLLECTIONS, "clef2017train") if name != test]
             plan, frames = {}, []
             for aggregation in ("mean", "min"):
