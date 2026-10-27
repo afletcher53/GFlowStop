@@ -53,6 +53,8 @@ class Config:
     selection: str = "stable"
     max_penalty: float = 256.0
     power_features: bool = True
+    thinning: int = 0
+    thinning_weight: float = 0.5
     seed: int = 0
     ensemble: int = 3
 
@@ -92,7 +94,29 @@ def training_set(collections: dict, runs: dict, held_out: set[str], config: Conf
     return rankings, weights
 
 
+def thinned(rankings: list[np.ndarray], weights: list[float], config: Config, seed: int) -> tuple[list[np.ndarray], list[float]]:
+    """Add ``config.thinning`` random sub-pools of every ranking, keeping review order.
+
+    Each relevant document survives with probability U(0.6, 1) and each
+    non-relevant one with probability exp(U(log 0.1, 0)), so a sub-pool is a
+    smaller, often denser ranking of the same topic. It uses only training
+    rankings, so no test topic enters training.
+    """
+    rng = np.random.default_rng(seed)
+    extra, extra_weights = [], []
+    for labels, weight in zip(rankings, weights):
+        labels = np.asarray(labels) > 0
+        for _ in range(config.thinning):
+            keep = np.where(labels, rng.random(len(labels)) < rng.uniform(0.6, 1.0), rng.random(len(labels)) < np.exp(rng.uniform(np.log(0.1), 0.0)))
+            if keep.sum() >= 20 and labels[keep].any():
+                extra.append(labels[keep].astype(int))
+                extra_weights.append(weight * config.thinning_weight)
+    return rankings + extra, weights + extra_weights
+
+
 def fit(rankings: list[np.ndarray], weights: list[float], config: Config):
+    if config.thinning:
+        rankings, weights = thinned(rankings, weights, config, config.seed + 7919)
     if config.model == "structured":
         members = []
         for seed in range(config.seed, config.seed + config.ensemble):
