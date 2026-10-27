@@ -199,3 +199,23 @@ Everything else, including the gates, is unchanged. Because these changes
 followed revision 1's test results, revision 2 is a second look at the same
 91 topics and not an independent confirmation; a held-out confirmation would
 need another collection.
+
+## Revision 3 (declared before its run)
+
+Revision 2 was lost to a container restart before its first fold finished.
+Partial single-seed ablation runs exposed the weak point. When 2017 is the test
+collection, each inner-validation network trains on only 43 topics, because the
+participant runs of both held-out years are excluded. Its miss classifier is then
+confidently wrong on unfamiliar topics. Inner-validation reliability at target
+0.9 plateaued near 85% however large the penalty.
+
+Revision 3 is revision 2 plus sub-pool thinning of every training ranking: 8
+random sub-pools per ranking, at weight 0.5 each. Each sub-pool keeps every
+relevant document with probability U(0.6, 1) and every non-relevant one with
+probability exp(U(log 0.1, 0)), preserving review order. It is a smaller and
+often denser ranking of the same topic, which covers the small, dense topics
+that failed. The choice was made on one inner split: training on 2019 and the
+extra 2017 topics, validating on 2018. Thinning raised validation reliability
+from 96.7/90.0/86.7% to 100/93.3/93.3% at the three targets, for about one
+point more review. 2018 is a test collection in its own fold, so revision 3 is
+also a second look and not an independent confirmation.
