@@ -1,0 +1,16 @@
+{
+  "synergy": {
+    "0.8": {
+      "penalty": 1.0,
+      "aggregation": "mean"
+    },
+    "0.9": {
+      "penalty": 2.0,
+      "aggregation": "mean"
+    },
+    "0.95": {
+      "penalty": 2.0,
+      "aggregation": "mean"
+    }
+  }
+}

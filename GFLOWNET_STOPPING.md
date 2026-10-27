@@ -452,3 +452,63 @@ optimistic about a new collection. The penalties it chose sit just below the
 frontier's knee, so selection, not the network, still limits the declared
 result. The cautious `min` aggregation is uniformly more reliable and more
 expensive; out-of-bag selection rarely preferred it.
+
+## Results of the external SYNERGY test
+
+The rankings (`results/flow/synergy/synergy_manifest.json`) are much harder than
+CLEF's. With final-inclusion labels and simulated AutoTAR rankings, the oracle
+needs 27.7% review on average to reach recall 0.9, against 6.5% on CLEF.
+Revision 4 was trained on every CLEF ranking. Out-of-bag selection on CLEF chose
+penalties of 1, 2 and 2 with averaged flows. Results on the 26 reviews:
+
+| Rule | 0.8 | 0.9 | 0.95 |
+| --- | --- | --- | --- |
+| **GFlowStop r4** | 80.8% / 23.2% | 80.8% / 43.8% | 88.5% / 56.4% |
+| IP-H (published) | 84.6% / 31.0% | 73.1% / 31.4% | 69.2% / 33.5% |
+| IP-E | 88.5% / 33.4% | 76.9% / 34.4% | 73.1% / 36.6% |
+| IP-H (`tail='model'`) | 92.3% / 34.2% | 84.6% / 35.6% | 80.8% / 39.2% |
+| IP-P | 92.3% / 47.6% | 88.5% / 50.6% | 84.6% / 52.7% |
+| ConsecutiveIrrelevant | 73.1% / 27.6% | 57.7% / 27.6% | 53.8% / 27.6% |
+| Budget | 100% / 53.3% | 88.5% / 53.3% | 88.5% / 53.3% |
+| CMHHeuristic | 100% / 55.7% | 100% / 70.7% | 100% / 81.9% |
+| RLStop (trained on all CLEF) | 15.4% / 1.7% | 3.8% / 2.4% | 11.5% / 4.3% |
+| Oracle | 100% / 19.7% | 100% / 27.7% | 100% / 32.5% |
+
+**It beats no baseline under the gates.**
+
+* At 0.8 it is cheaper than every IP rule but less reliable. Against
+  ConsecutiveIrrelevant it is +7.7 points more reliable and 4.5 points cheaper,
+  but the interval [−16.5, +8.1] includes zero.
+* At 0.9 and 0.95 it becomes conservative on these weak rankings. It reviews
+  more than the IP-H family and is more reliable than them at 0.95, a
+  trade-off.
+* It never reaches CMH's 100%.
+* RLStop trained on CLEF collapses on SYNERGY, stopping almost at once.
+
+The penalty grid (descriptive) shows what a well-placed operating point would
+have given:
+
+| Penalty, mean | 0.8 | 0.9 | 0.95 |
+| --- | --- | --- | --- |
+| 1 | 80.8% / 23.2% | 65.4% / 27.7% | 73.1% / 39.8% |
+| 2 | 88.5% / 31.5% | 80.8% / 43.8% | 88.5% / 56.4% |
+| 4 | 96.2% / 41.7% | 96.2% / 61.0% | 96.2% / 70.2% |
+| 8 | 96.2% / 54.8% | 96.2% / 68.4% | 96.2% / 75.6% |
+
+Even at its best, the grid is not clearly ahead of the point-process rules
+here. A penalty of 4 at 0.8 is more reliable and cheaper than IP-P (96.2% /
+41.7% against 92.3% / 47.6%); elsewhere the grid trades reliability against
+review.
+
+### What this means
+
+The CLEF gains of revisions 3 and 4 do not transfer to a collection whose
+rankings are much weaker than any the network was trained on. The learned
+policy moves in the right direction: it reviews more when the gain curve is
+flat, unlike RLStop, which collapses. But its estimate of the remaining
+relevant documents is not calibrated outside CLEF's AutoTAR regime, and the
+penalty chosen on CLEF does not carry over. The point-process estimators, which
+fit each ranking's own gain curve with no training, travel better. A learned
+stopper of this kind needs training rankings from the regime it is deployed in,
+for example leave-one-review-out within SYNERGY, or a calibration step on a few
+reviews from the target collection.
