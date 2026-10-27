@@ -396,3 +396,59 @@ external test uses a collection that played no part in development:
 * **Gates.** As for CLEF, over the 26 reviews: lower mean review with the
   paired 95% interval below zero, and reliability at least the baseline's.
   With 26 reviews, one review is 3.8 points of reliability.
+
+## Results of revision 4
+
+The 2019 fold first crashed, apparently out of memory (four members training in
+parallel on the largest training set). It was rerun with two workers, resuming
+2017 and 2018 from their saved members, which reproduced them exactly.
+Artifacts are in `results/flow/v4/` and `results/flow/compare/`.
+
+| Rule | 0.8 | 0.9 | 0.95 |
+| --- | --- | --- | --- |
+| **GFlowStop r4** | 96.7% / 8.8% | 95.6% / 12.3% | 94.5% / 19.0% |
+| GFlowStop r3 | 95.6% / 8.2% | 92.3% / 12.6% | 93.4% / 18.2% |
+| IP-H (published) | 93.4% / 16.1% | 90.1% / 16.8% | 89.0% / 18.1% |
+| IP-E | 98.9% / 17.1% | 95.6% / 18.0% | 94.5% / 19.4% |
+| IP-H (`tail='model'`) | 100% / 17.6% | 97.8% / 18.5% | 97.8% / 20.0% |
+| ConsecutiveIrrelevant | 100% / 20.8% | 97.8% / 20.8% | 95.6% / 20.8% |
+
+Out-of-bag selection chose penalties of 0.5–4 and averaged flows (`mean`) at
+every target except 2017 at 0.95. Against the gates:
+
+* **It beats the published IP-H at 0.8 and 0.9.** It reviews 7.3 points less
+  [−9.7, −4.9] and 4.5 points less [−7.1, −1.7], with reliability +3.3 and
+  +5.5 points.
+* **It beats CX-H at 0.8 and 0.9.** It reviews 9.0 points less [−11.5, −6.6]
+  and 6.7 points less [−9.4, −3.9], with reliability +3.3 and +4.4 points.
+* **It beats IP-E at 0.9.** It reviews 5.7 points less [−8.4, −3.0] at equal
+  reliability, 95.6%.
+* **It does not beat IP-H (`tail='model'`), IP-P or ConsecutiveIrrelevant at any
+  target.** Against IP-H (`tail='model'`) it is 8.8, 6.2 and 1.0 points cheaper
+  and misses 3, 2 and 3 more topics.
+* At 0.95 no review difference excludes zero.
+
+Revision 4 is more reliable than revision 3 at every target (+1.1, +3.3, +1.1
+points) for the same review. By collection at 0.9: 2017 96.7% / 12.8%, 2018
+90.0% / 9.7%, 2019 100% / 14.4%. IP-H (`tail='model'`) gets 100% / 16.3%,
+93.3% / 17.4% and 100% / 21.7%.
+
+The ten-member ensemble's penalty grid (descriptive; reading it uses test
+labels; `results/flow/clef_frontier_r4.png`):
+
+| Penalty, aggregation | 0.8 | 0.9 | 0.95 |
+| --- | --- | --- | --- |
+| 2, mean | 100% / 10.6% | 95.6% / 12.3% | 93.4% / 14.4% |
+| 4, mean | 100% / 12.0% | 95.6% / 13.7% | 96.7% / 16.8% |
+| 8, mean | 100% / 14.2% | 100% / 16.5% | 97.8% / 20.5% |
+| 16, mean | 100% / 16.9% | 100% / 18.9% | 98.9% / 27.1% |
+| 2, min | 100% / 17.7% | 100% / 20.8% | 98.9% / 28.8% |
+
+At a penalty of 8, the averaged ensemble would beat IP-H (`tail='model'`) at
+0.8 and 0.9: equal or higher reliability for 3.4 and 2.0 points less review.
+The deployed rule cannot claim that, because that penalty was not chosen
+without test labels. Out-of-bag reliability on CLEF training topics was again
+optimistic about a new collection. The penalties it chose sit just below the
+frontier's knee, so selection, not the network, still limits the declared
+result. The cautious `min` aggregation is uniformly more reliable and more
+expensive; out-of-bag selection rarely preferred it.

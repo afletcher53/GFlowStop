@@ -1,5 +1,599 @@
 [
  {
+  "rule":"GFlowStop r4",
+  "baseline":"IPHyperbolic (IP-H), tail='model'",
+  "target":0.8,
+  "topics":91,
+  "review_difference":-0.0879692695,
+  "review_ci":[
+   -0.1124239825,
+   -0.0648531499
+  ],
+  "reliability_difference":-0.032967033,
+  "reliability_ci":[
+   -0.0769230769,
+   0.0
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"IPHyperbolic (IP-H)",
+  "target":0.8,
+  "topics":91,
+  "review_difference":-0.0725822733,
+  "review_ci":[
+   -0.0970153534,
+   -0.0490441896
+  ],
+  "reliability_difference":0.032967033,
+  "reliability_ci":[
+   -0.032967033,
+   0.0989010989
+  ],
+  "only_ours_reliable":6,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"IPExponential (IP-E)",
+  "target":0.8,
+  "topics":91,
+  "review_difference":-0.0827491237,
+  "review_ci":[
+   -0.1079026744,
+   -0.0590132642
+  ],
+  "reliability_difference":-0.021978022,
+  "reliability_ci":[
+   -0.0659340659,
+   0.021978022
+  ],
+  "only_ours_reliable":1,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"PoissonPoint (IP-P)",
+  "target":0.8,
+  "topics":91,
+  "review_difference":-0.1890296923,
+  "review_ci":[
+   -0.2212249429,
+   -0.1588297953
+  ],
+  "reliability_difference":-0.032967033,
+  "reliability_ci":[
+   -0.0769230769,
+   0.0
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"ConsecutiveIrrelevant",
+  "target":0.8,
+  "topics":91,
+  "review_difference":-0.1199747212,
+  "review_ci":[
+   -0.1612909288,
+   -0.0825133653
+  ],
+  "reliability_difference":-0.032967033,
+  "reliability_ci":[
+   -0.0769230769,
+   0.0
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"CMHHeuristic",
+  "target":0.8,
+  "topics":91,
+  "review_difference":-0.3879492497,
+  "review_ci":[
+   -0.4462863768,
+   -0.3332587133
+  ],
+  "reliability_difference":-0.032967033,
+  "reliability_ci":[
+   -0.0769230769,
+   0.0
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"Kneedle",
+  "target":0.8,
+  "topics":91,
+  "review_difference":-0.4591457114,
+  "review_ci":[
+   -0.5261125966,
+   -0.393836652
+  ],
+  "reliability_difference":-0.032967033,
+  "reliability_ci":[
+   -0.0769230769,
+   0.0
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"Budget",
+  "target":0.8,
+  "topics":91,
+  "review_difference":-0.3504981171,
+  "review_ci":[
+   -0.4151083172,
+   -0.288445048
+  ],
+  "reliability_difference":-0.032967033,
+  "reliability_ci":[
+   -0.0769230769,
+   0.0
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"RLStop",
+  "target":0.8,
+  "topics":91,
+  "review_difference":0.022123535,
+  "review_ci":[
+   -0.0072799354,
+   0.0438956476
+  ],
+  "reliability_difference":0.3406593407,
+  "reliability_ci":[
+   0.2417582418,
+   0.4395604396
+  ],
+  "only_ours_reliable":32,
+  "only_baseline_reliable":1
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"GFlowStop r3",
+  "target":0.8,
+  "topics":91,
+  "review_difference":0.0064344479,
+  "review_ci":[
+   0.0020107648,
+   0.0109666628
+  ],
+  "reliability_difference":0.010989011,
+  "reliability_ci":[
+   0.0,
+   0.032967033
+  ],
+  "only_ours_reliable":1,
+  "only_baseline_reliable":0
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"GFlowStop r1",
+  "target":0.8,
+  "topics":91,
+  "review_difference":-0.042879395,
+  "review_ci":[
+   -0.0688776642,
+   -0.0210981258
+  ],
+  "reliability_difference":0.0,
+  "reliability_ci":[
+   -0.032967033,
+   0.032967033
+  ],
+  "only_ours_reliable":1,
+  "only_baseline_reliable":1
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"IPHyperbolic (IP-H), tail='model'",
+  "target":0.9,
+  "topics":91,
+  "review_difference":-0.0622017225,
+  "review_ci":[
+   -0.0883562845,
+   -0.0362949715
+  ],
+  "reliability_difference":-0.021978022,
+  "reliability_ci":[
+   -0.0549450549,
+   0.0
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":2
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"IPHyperbolic (IP-H)",
+  "target":0.9,
+  "topics":91,
+  "review_difference":-0.0446182491,
+  "review_ci":[
+   -0.0711964887,
+   -0.0173521128
+  ],
+  "reliability_difference":0.0549450549,
+  "reliability_ci":[
+   -0.010989011,
+   0.1208791209
+  ],
+  "only_ours_reliable":7,
+  "only_baseline_reliable":2
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"IPExponential (IP-E)",
+  "target":0.9,
+  "topics":91,
+  "review_difference":-0.0567075516,
+  "review_ci":[
+   -0.0838507165,
+   -0.0299249761
+  ],
+  "reliability_difference":0.0,
+  "reliability_ci":[
+   -0.043956044,
+   0.043956044
+  ],
+  "only_ours_reliable":2,
+  "only_baseline_reliable":2
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"PoissonPoint (IP-P)",
+  "target":0.9,
+  "topics":91,
+  "review_difference":-0.1627354573,
+  "review_ci":[
+   -0.1990124346,
+   -0.1278975276
+  ],
+  "reliability_difference":-0.043956044,
+  "reliability_ci":[
+   -0.0879120879,
+   -0.010989011
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":4
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"ConsecutiveIrrelevant",
+  "target":0.9,
+  "topics":91,
+  "review_difference":-0.0848899405,
+  "review_ci":[
+   -0.1195674705,
+   -0.0535365755
+  ],
+  "reliability_difference":-0.021978022,
+  "reliability_ci":[
+   -0.0659340659,
+   0.021978022
+  ],
+  "only_ours_reliable":1,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"CMHHeuristic",
+  "target":0.9,
+  "topics":91,
+  "review_difference":-0.4851445899,
+  "review_ci":[
+   -0.5444088355,
+   -0.4289617056
+  ],
+  "reliability_difference":-0.043956044,
+  "reliability_ci":[
+   -0.0879120879,
+   -0.010989011
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":4
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"Kneedle",
+  "target":0.9,
+  "topics":91,
+  "review_difference":-0.4240609306,
+  "review_ci":[
+   -0.4903470985,
+   -0.3593176478
+  ],
+  "reliability_difference":-0.043956044,
+  "reliability_ci":[
+   -0.0879120879,
+   -0.010989011
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":4
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"Budget",
+  "target":0.9,
+  "topics":91,
+  "review_difference":-0.3154133363,
+  "review_ci":[
+   -0.3803714821,
+   -0.2527991219
+  ],
+  "reliability_difference":-0.043956044,
+  "reliability_ci":[
+   -0.0879120879,
+   -0.010989011
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":4
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"RLStop",
+  "target":0.9,
+  "topics":91,
+  "review_difference":0.0325367472,
+  "review_ci":[
+   0.0121426961,
+   0.0540174925
+  ],
+  "reliability_difference":0.2967032967,
+  "reliability_ci":[
+   0.1978021978,
+   0.3956043956
+  ],
+  "only_ours_reliable":29,
+  "only_baseline_reliable":2
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"GFlowStop r3",
+  "target":0.9,
+  "topics":91,
+  "review_difference":-0.0030012063,
+  "review_ci":[
+   -0.0162261013,
+   0.0092434867
+  ],
+  "reliability_difference":0.032967033,
+  "reliability_ci":[
+   0.0,
+   0.0769230769
+  ],
+  "only_ours_reliable":3,
+  "only_baseline_reliable":0
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"GFlowStop r1",
+  "target":0.9,
+  "topics":91,
+  "review_difference":-0.0736331483,
+  "review_ci":[
+   -0.1145571951,
+   -0.0372722065
+  ],
+  "reliability_difference":0.0,
+  "reliability_ci":[
+   -0.032967033,
+   0.032967033
+  ],
+  "only_ours_reliable":1,
+  "only_baseline_reliable":1
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"IPHyperbolic (IP-H), tail='model'",
+  "target":0.95,
+  "topics":91,
+  "review_difference":-0.0102317866,
+  "review_ci":[
+   -0.0418561488,
+   0.0226979071
+  ],
+  "reliability_difference":-0.032967033,
+  "reliability_ci":[
+   -0.0879120879,
+   0.010989011
+  ],
+  "only_ours_reliable":1,
+  "only_baseline_reliable":4
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"IPHyperbolic (IP-H)",
+  "target":0.95,
+  "topics":91,
+  "review_difference":0.0084496591,
+  "review_ci":[
+   -0.0243460688,
+   0.0441949866
+  ],
+  "reliability_difference":0.0549450549,
+  "reliability_ci":[
+   -0.010989011,
+   0.1208791209
+  ],
+  "only_ours_reliable":8,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"IPExponential (IP-E)",
+  "target":0.95,
+  "topics":91,
+  "review_difference":-0.0041890149,
+  "review_ci":[
+   -0.036769315,
+   0.0297681826
+  ],
+  "reliability_difference":0.0,
+  "reliability_ci":[
+   -0.0549450549,
+   0.0549450549
+  ],
+  "only_ours_reliable":3,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"PoissonPoint (IP-P)",
+  "target":0.95,
+  "topics":91,
+  "review_difference":-0.0992187663,
+  "review_ci":[
+   -0.1330493527,
+   -0.0653325615
+  ],
+  "reliability_difference":-0.0549450549,
+  "reliability_ci":[
+   -0.1098901099,
+   -0.010989011
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":5
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"ConsecutiveIrrelevant",
+  "target":0.95,
+  "topics":91,
+  "review_difference":-0.0180750202,
+  "review_ci":[
+   -0.0566228709,
+   0.0193094072
+  ],
+  "reliability_difference":-0.010989011,
+  "reliability_ci":[
+   -0.0549450549,
+   0.032967033
+  ],
+  "only_ours_reliable":2,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"CMHHeuristic",
+  "target":0.95,
+  "topics":91,
+  "review_difference":-0.5326537221,
+  "review_ci":[
+   -0.5936536899,
+   -0.4702923493
+  ],
+  "reliability_difference":-0.0549450549,
+  "reliability_ci":[
+   -0.1098901099,
+   -0.010989011
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":5
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"Kneedle",
+  "target":0.95,
+  "topics":91,
+  "review_difference":-0.3572460104,
+  "review_ci":[
+   -0.4279425615,
+   -0.2862726305
+  ],
+  "reliability_difference":-0.0549450549,
+  "reliability_ci":[
+   -0.1098901099,
+   -0.010989011
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":5
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"Budget",
+  "target":0.95,
+  "topics":91,
+  "review_difference":-0.2485984161,
+  "review_ci":[
+   -0.319348133,
+   -0.1793559933
+  ],
+  "reliability_difference":-0.0549450549,
+  "reliability_ci":[
+   -0.1098901099,
+   -0.010989011
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":5
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"RLStop",
+  "target":0.95,
+  "topics":91,
+  "review_difference":0.0778811279,
+  "review_ci":[
+   0.0479914052,
+   0.1092071808
+  ],
+  "reliability_difference":0.2087912088,
+  "reliability_ci":[
+   0.1098901099,
+   0.3076923077
+  ],
+  "only_ours_reliable":22,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"GFlowStop r3",
+  "target":0.95,
+  "topics":91,
+  "review_difference":0.0073734443,
+  "review_ci":[
+   -0.0089279604,
+   0.0230967373
+  ],
+  "reliability_difference":0.010989011,
+  "reliability_ci":[
+   -0.032967033,
+   0.0549450549
+  ],
+  "only_ours_reliable":3,
+  "only_baseline_reliable":2
+ },
+ {
+  "rule":"GFlowStop r4",
+  "baseline":"GFlowStop r1",
+  "target":0.95,
+  "topics":91,
+  "review_difference":-0.1319036429,
+  "review_ci":[
+   -0.1902846521,
+   -0.0774413769
+  ],
+  "reliability_difference":-0.010989011,
+  "reliability_ci":[
+   -0.0549450549,
+   0.021978022
+  ],
+  "only_ours_reliable":1,
+  "only_baseline_reliable":2
+ },
+ {
   "rule":"GFlowStop r3",
   "baseline":"IPHyperbolic (IP-H), tail='model'",
   "target":0.8,
@@ -159,6 +753,24 @@
    0.4285714286
   ],
   "only_ours_reliable":31,
+  "only_baseline_reliable":1
+ },
+ {
+  "rule":"GFlowStop r3",
+  "baseline":"GFlowStop r4",
+  "target":0.8,
+  "topics":91,
+  "review_difference":-0.0064344479,
+  "review_ci":[
+   -0.0109666628,
+   -0.0020107648
+  ],
+  "reliability_difference":-0.010989011,
+  "reliability_ci":[
+   -0.032967033,
+   0.0
+  ],
+  "only_ours_reliable":0,
   "only_baseline_reliable":1
  },
  {
@@ -343,6 +955,24 @@
  },
  {
   "rule":"GFlowStop r3",
+  "baseline":"GFlowStop r4",
+  "target":0.9,
+  "topics":91,
+  "review_difference":0.0030012063,
+  "review_ci":[
+   -0.0092434867,
+   0.0162261013
+  ],
+  "reliability_difference":-0.032967033,
+  "reliability_ci":[
+   -0.0769230769,
+   0.0
+  ],
+  "only_ours_reliable":0,
+  "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r3",
   "baseline":"GFlowStop r1",
   "target":0.9,
   "topics":91,
@@ -520,6 +1150,24 @@
   ],
   "only_ours_reliable":24,
   "only_baseline_reliable":6
+ },
+ {
+  "rule":"GFlowStop r3",
+  "baseline":"GFlowStop r4",
+  "target":0.95,
+  "topics":91,
+  "review_difference":-0.0073734443,
+  "review_ci":[
+   -0.0230967373,
+   0.0089279604
+  ],
+  "reliability_difference":-0.010989011,
+  "reliability_ci":[
+   -0.0549450549,
+   0.032967033
+  ],
+  "only_ours_reliable":2,
+  "only_baseline_reliable":3
  },
  {
   "rule":"GFlowStop r3",
@@ -703,6 +1351,24 @@
  },
  {
   "rule":"GFlowStop r1",
+  "baseline":"GFlowStop r4",
+  "target":0.8,
+  "topics":91,
+  "review_difference":0.042879395,
+  "review_ci":[
+   0.0210981258,
+   0.0688776642
+  ],
+  "reliability_difference":0.0,
+  "reliability_ci":[
+   -0.032967033,
+   0.032967033
+  ],
+  "only_ours_reliable":1,
+  "only_baseline_reliable":1
+ },
+ {
+  "rule":"GFlowStop r1",
   "baseline":"GFlowStop r3",
   "target":0.8,
   "topics":91,
@@ -883,6 +1549,24 @@
  },
  {
   "rule":"GFlowStop r1",
+  "baseline":"GFlowStop r4",
+  "target":0.9,
+  "topics":91,
+  "review_difference":0.0736331483,
+  "review_ci":[
+   0.0372722065,
+   0.1145571951
+  ],
+  "reliability_difference":0.0,
+  "reliability_ci":[
+   -0.032967033,
+   0.032967033
+  ],
+  "only_ours_reliable":1,
+  "only_baseline_reliable":1
+ },
+ {
+  "rule":"GFlowStop r1",
   "baseline":"GFlowStop r3",
   "target":0.9,
   "topics":91,
@@ -1060,6 +1744,24 @@
   ],
   "only_ours_reliable":23,
   "only_baseline_reliable":3
+ },
+ {
+  "rule":"GFlowStop r1",
+  "baseline":"GFlowStop r4",
+  "target":0.95,
+  "topics":91,
+  "review_difference":0.1319036429,
+  "review_ci":[
+   0.0774413769,
+   0.1902846521
+  ],
+  "reliability_difference":0.010989011,
+  "reliability_ci":[
+   -0.021978022,
+   0.0549450549
+  ],
+  "only_ours_reliable":2,
+  "only_baseline_reliable":1
  },
  {
   "rule":"GFlowStop r1",
