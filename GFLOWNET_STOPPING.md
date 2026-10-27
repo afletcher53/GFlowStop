@@ -250,8 +250,8 @@ difference:
   and 6.4 points less [−9.2, −3.3], with reliability +2.2 and +1.1 points. At
   0.95 review is equal (−1.7 [−4.8, +1.8]), with reliability +5.5 points.
 * **It does not beat IP-H (`tail='model'`), IP-E, IP-P or
-  ConsecutiveIrrelevant at any target.** It is 6–20 points cheaper at 0.8 and
-  0.9 than each of them, but misses the target on 1–7 more topics. That is a
+  ConsecutiveIrrelevant at any target.** It is 5–20 points cheaper at 0.8 and
+  0.9 than each of them, but misses the target on a net 1–7 more topics. That is a
   trade-off, not a win.
 * **Against RLStop**, it reaches the target on 33, 26 and 20 points more topics,
   for 1.6, 3.6 and 7.1 points more review.
