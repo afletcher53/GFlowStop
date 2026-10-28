@@ -167,3 +167,16 @@ def test_recall_chains_link_each_ranking_copy_in_review_order():
     assert len(ends) == 4
     assert np.all(data.next_row[data.next_row >= 0] == np.flatnonzero(data.next_row >= 0) + 1)
     assert np.allclose(data.review[ends], 1.0) and np.allclose(data.miss[ends], 0.0)
+
+
+def test_iph_features_read_only_the_reviewed_prefix():
+    pytest.importorskip("pyterrier_tar")
+    rng = np.random.default_rng(5)
+    labels = (rng.random(900) < np.linspace(0.3, 0.005, 900)).astype(int)
+    depths, features = ranking_features(labels, 0.9, 4.0, power=True, iph=True)
+    assert features.shape[1] == 50
+    for index in (3, 40, 90, len(depths) - 2):
+        depth = depths[index]
+        flipped = labels.copy()
+        flipped[depth:] = 1 - flipped[depth:]
+        assert np.allclose(features[index], ranking_features(flipped, 0.9, 4.0, power=True, iph=True)[1][index], atol=1e-6)

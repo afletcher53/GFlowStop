@@ -32,6 +32,8 @@ REMAINING_FRACTIONS = (0.02, 0.05, 0.1)
 MINIMUM_WINDOW = 5
 FIT_BINS = 20
 POWER_FEATURES = True  # power-law tail fits; False reproduces the first evaluation's 28 base features
+IPH_FEATURES = False  # IP-H (tail='model') estimates as features; needs pyterrier-tar
+_IPH_CACHE: dict[tuple[str, int], list[tuple[int, float, float, float, float]]] = {}
 
 
 def checkpoints(length: int, count: int = CHECKPOINTS) -> np.ndarray:
@@ -98,7 +100,84 @@ def _exponential_tail(cumulative: np.ndarray, depths: np.ndarray, length: int) -
     return _fitted_tail(cumulative, depths, length, "exponential")
 
 
-def base_features(labels: np.ndarray, length: int, depths: np.ndarray, power: bool | None = None) -> np.ndarray:
+def iph_key(labels: np.ndarray, length: int) -> tuple[str, int]:
+    from hashlib import sha1
+
+    return sha1((np.asarray(labels) > 0).astype(np.int8).tobytes()).hexdigest(), int(length)
+
+
+def iph_checkpoints(labels: np.ndarray, length: int) -> list[tuple[int, float, float, float, float]]:
+    """pyterrier-tar's IP-H (``tail='model'``) at each of its own checkpoints that ``labels`` reaches.
+
+    IP-H re-fits every 2.5% of the pool from the reviewed prefix only. Each
+    entry is ``(depth, fitted, estimated recall, Poisson-bound recall, empty
+    tail)``: whether the hyperbolic fit was accepted, ``found / (found +
+    expected remaining)``, the same with IP-H's 95% Poisson upper bound, and
+    whether the latter windows held nothing relevant (IP-H's other stopping
+    condition). Results are cached by a digest of the labels.
+    """
+    labels = (np.asarray(labels) > 0).astype(np.int8)
+    key = iph_key(labels, length)
+    if key in _IPH_CACHE:
+        return _IPH_CACHE[key]
+    import warnings
+
+    from pyterrier_tar import IPHyperbolic
+
+    rule = IPHyperbolic(0.9, int(length), tail="model")  # the estimates do not depend on the target
+    minimum, rows = rule.initial_min_relevant, []
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for proportion, stop in zip(rule._sample_proportions(), rule._sample_sizes()):
+            if stop > len(labels):
+                break
+            row = rule._checkpoint(labels, proportion, stop, minimum)  # reads labels[:stop] only
+            if stop >= rule.n_windows:
+                minimum = row["next_minimum_relevant"]
+            found = float(row["relevant_seen"])
+            remaining = row["expected_remaining"]
+            upper = row["poisson_upper_bound"]
+            fitted = upper is not None and np.isfinite(remaining)
+            empty = "latter point-process windows" in row["reason"]
+            rows.append((
+                int(stop), float(fitted),
+                found / (found + remaining) if fitted and found + remaining > 0 else float(empty),
+                found / (found + upper) if fitted and found + upper > 0 else float(empty),
+                float(empty),
+            ))
+    _IPH_CACHE[key] = rows
+    return rows
+
+
+def iph_features(labels: np.ndarray, length: int, depths: np.ndarray) -> np.ndarray:
+    """IP-H state at each depth, from its checkpoints at or before that depth.
+
+    Columns: whether the latest checkpoint's fit was accepted; the estimated and
+    Poisson-bound recall of the latest accepted fit (zero before any);
+    whether the latest checkpoint found the latter windows empty; and how long
+    ago, as a fraction of the pool, the latest accepted fit was taken.
+    """
+    rows = iph_checkpoints(labels, length)
+    stops = np.array([row[0] for row in rows], dtype=int)
+    values = np.array([row[1:] for row in rows], dtype=float).reshape(-1, 4)
+    out = np.zeros((len(depths), 5))
+    latest = np.searchsorted(stops, depths, side="right") - 1
+    known = latest >= 0
+    out[known, 0] = values[latest[known], 0]
+    out[known, 3] = values[latest[known], 3]
+    accepted = np.flatnonzero(values[:, 0] > 0)
+    last_fit = np.searchsorted(stops[accepted], depths, side="right") - 1 if len(accepted) else np.full(len(depths), -1)
+    fitted = last_fit >= 0
+    rows_fit = accepted[np.maximum(last_fit, 0)] if len(accepted) else np.zeros(len(depths), dtype=int)
+    out[fitted, 1] = values[rows_fit[fitted], 1]
+    out[fitted, 2] = values[rows_fit[fitted], 2]
+    out[:, 4] = np.where(fitted, (depths - stops[rows_fit]) / length if len(stops) else 0.0, 1.0)
+    return out
+
+
+def base_features(
+    labels: np.ndarray, length: int, depths: np.ndarray, power: bool | None = None, iph: bool | None = None,
+) -> np.ndarray:
     """Target-independent observable state at each depth, reading only ``labels[:depth]``.
 
     ``labels`` may be a prefix of the ranking; ``length`` is the full ranking's
@@ -155,17 +234,20 @@ def base_features(labels: np.ndarray, length: int, depths: np.ndarray, power: bo
             half / np.maximum(found, 1.0),
             tenth / np.maximum(found, 1.0),
             *power_features,
+            *(iph_features(labels, length, depths).T if (IPH_FEATURES if iph is None else iph) else []),
         ]
     ).astype(np.float32)
 
 
 ESTIMATED_RECALL_COLUMNS = (18, 20, 22, 24)  # window-rate and fitted-decay recall estimates in base_features
 POWER_RECALL_COLUMNS = (29, 30, 33)  # power-law fit, its Poisson upper bound, local exponential fit (POWER_FEATURES)
+IPH_RECALL_COLUMNS = (35, 36)  # IP-H estimated and Poisson-bound recall (IPH_FEATURES, after the power features)
+FEATURE_SETS = {34: (False, False), 43: (True, False), 50: (True, True)}  # network input width -> (power, iph)
 
 
 def with_operating_point(base: np.ndarray, target: float, penalty: float) -> np.ndarray:
     """Append how far each estimated recall is from the target (log-odds), then the target and penalty."""
-    columns = ESTIMATED_RECALL_COLUMNS + (POWER_RECALL_COLUMNS if base.shape[1] > 28 else ())
+    columns = ESTIMATED_RECALL_COLUMNS + (POWER_RECALL_COLUMNS if base.shape[1] > 28 else ()) + (IPH_RECALL_COLUMNS if base.shape[1] > 34 else ())
     estimated = np.clip(base[:, columns], 1e-4, 1 - 1e-4)
     margin = np.log(estimated / (1 - estimated)) - np.log(target / (1 - target))
     return np.c_[base, margin / 4.0, np.full((len(base), 2), (target, np.log(penalty) / 4.0))].astype(np.float32)
@@ -180,10 +262,11 @@ def prefix_features(prefix: np.ndarray, length: int, target: float, penalty: flo
 
 def ranking_features(
     labels: np.ndarray, target: float, penalty: float, count: int = CHECKPOINTS, power: bool | None = None,
+    iph: bool | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Features at every checkpoint of one ranking; each row reads only its own reviewed prefix."""
     depths = checkpoints(len(labels), count)
-    return depths, with_operating_point(base_features(labels, len(labels), depths, power), target, penalty)
+    return depths, with_operating_point(base_features(labels, len(labels), depths, power, iph), target, penalty)
 
 
 def stop_utilities(labels: np.ndarray, depths: np.ndarray, target: float, penalty: float) -> np.ndarray:
@@ -275,8 +358,8 @@ class FlowStopPolicy:
     def stop_probabilities(self, labels: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """``P_F(stop)`` at every checkpoint, the reviewer's stopping indicator."""
         network = self.network.members[0] if isinstance(self.network, RecallFlowEnsemble) else self.network
-        power = None if not hasattr(network, "mean_") else len(network.mean_) != 34  # 34 inputs: trained without tail fits
-        depths, features = ranking_features(labels, self.target, self.penalty, self.count, power)
+        power, iph = FEATURE_SETS[len(network.mean_)] if hasattr(network, "mean_") else (None, None)
+        depths, features = ranking_features(labels, self.target, self.penalty, self.count, power, iph)
         if isinstance(self.network, (RecallFlowNetwork, RecallFlowEnsemble)):
             review_next = np.r_[depths[1:], len(labels)] / len(labels)
             return depths, self.network.stop_probabilities(features, depths / len(labels), review_next, self.penalty, depths < len(labels))

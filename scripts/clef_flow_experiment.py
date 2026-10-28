@@ -67,6 +67,12 @@ class Config:
     bag_fraction: float = 0.7
     workers: int = 4
     thinning_weight: float = 0.5
+    fixed_thinning: bool = False
+    thin_runs: bool = True
+    iph_features: bool = False
+    external_folds: int = 0
+    external_weight: float = 3.0
+    select_on: str = "clef"
     seed: int = 0
     ensemble: int = 3
 
@@ -83,14 +89,16 @@ def load(data: Path) -> tuple[dict, dict]:
     return collections, runs
 
 
-def training_set(collections: dict, runs: dict, held_out: set[str], config: Config, groups: bool = False):
-    """AutoTAR rankings of the non-held-out collections, the extra 2017 topics, and allowed runs.
+def training_set(collections: dict, runs: dict, held_out: set[str], config: Config, groups: bool = False, extra: dict | None = None):
+    """AutoTAR rankings of the non-held-out collections, the extra 2017 topics, allowed runs and ``extra``.
 
-    With ``groups``, also returns each ranking's topic id, which keeps a topic's
-    rankings together when bagging.
+    ``extra`` maps a name to rankings from outside CLEF, each weighted
+    ``config.external_weight``. With ``groups``, also returns each ranking's topic
+    id, which keeps a topic's rankings together when bagging, and whether it may
+    be thinned.
     """
     excluded = {qid for name in held_out for qid in collections[name]}
-    rankings, weights, topics = [], [], []
+    rankings, weights, topics, thinnable = [], [], [], []
     for name in (*COLLECTIONS, "clef2017train"):
         if name in held_out:
             continue
@@ -99,6 +107,13 @@ def training_set(collections: dict, runs: dict, held_out: set[str], config: Conf
                 rankings.append(labels)
                 weights.append(1.0)
                 topics.append(qid)
+                thinnable.append(True)
+    for name, items in (extra or {}).items():
+        for qid, labels in items.items():
+            rankings.append(labels)
+            weights.append(config.external_weight)
+            topics.append(f"{name}:{qid}")
+            thinnable.append(True)
     if config.runs:
         blocked = {RUN_YEAR[name] for name in held_out}
         for year, items in runs.items():
@@ -109,7 +124,44 @@ def training_set(collections: dict, runs: dict, held_out: set[str], config: Conf
                     rankings.append(labels)
                     weights.append(config.run_weight)
                     topics.append(qid)
-    return (rankings, weights, topics) if groups else (rankings, weights)
+                    thinnable.append(config.thin_runs)
+    return (rankings, weights, topics, thinnable) if groups else (rankings, weights)
+
+
+def fixed_thinned(rankings, weights, topics, thinnable, config: Config):
+    """Add ``config.thinning`` sub-pools of every thinnable ranking, the same for every ensemble member."""
+    rankings, weights, topics = list(rankings), list(weights), list(topics)
+    for index in [i for i, flag in enumerate(thinnable) if flag]:
+        extra, extra_weights = thinned([rankings[index]], [weights[index]], config, seed=hash((config.seed, index)) % 2**32)
+        for labels, weight in zip(extra[1:], extra_weights[1:]):
+            rankings.append(labels)
+            weights.append(weight)
+            topics.append(topics[index])
+    return rankings, weights, topics
+
+
+def _iph_task(item):
+    labels, length = item
+    return tar_flow.iph_key(labels, length), tar_flow.iph_checkpoints(labels, length)
+
+
+def precompute_iph(rankings: list[np.ndarray], workers: int, cache: Path) -> None:
+    """Fill the IP-H cache for every ranking in parallel, reusing and extending a cache file."""
+    if cache.exists():
+        tar_flow._IPH_CACHE.update(pickle.loads(cache.read_bytes()))
+    todo, seen = [], set()
+    for labels in rankings:
+        key = tar_flow.iph_key(labels, len(labels))
+        if key not in tar_flow._IPH_CACHE and key not in seen:
+            seen.add(key)
+            todo.append((labels, len(labels)))
+    if todo:
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            for key, rows in pool.map(_iph_task, todo, chunksize=8):
+                tar_flow._IPH_CACHE[key] = rows
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_bytes(pickle.dumps(tar_flow._IPH_CACHE))
+    print(f"IP-H features: {len(todo)} rankings computed, {len(tar_flow._IPH_CACHE)} cached", flush=True)
 
 
 def thinned(rankings: list[np.ndarray], weights: list[float], config: Config, seed: int) -> tuple[list[np.ndarray], list[float]]:
@@ -158,7 +210,7 @@ def _fit_member(task) -> RecallFlowNetwork:
     import torch
 
     torch.set_num_threads(1)
-    if config.thinning:
+    if config.thinning and not config.fixed_thinning:
         rankings, weights = thinned(rankings, weights, config, seed + 7919)
     data = RecallChains.build(rankings, TARGETS, (0.25, config.max_penalty), copies=config.copies, seed=seed, weights=weights)
     return RecallFlowNetwork(
@@ -183,14 +235,55 @@ def fit_bagged(rankings: list[np.ndarray], weights: list[float], topics: list[st
 
 
 def out_of_bag(members: list, bags: list[set], collections: dict, names: list[str], penalties, aggregation: str) -> pd.DataFrame:
-    """Stops of every AutoTAR topic of ``names`` by the ensemble of members that never trained on it."""
+    """Stops of every topic of ``names`` by the ensemble of members that never trained on it."""
     frames = []
     for name in names:
+        prefix = f"{name}:" if name not in (*COLLECTIONS, "clef2017train") else ""  # external topics are keyed by name
         for qid, labels in collections[name].items():
-            unseen = [member for member, bag in zip(members, bags) if qid not in bag]
+            unseen = [member for member, bag in zip(members, bags) if prefix + qid not in bag]
             if unseen:
                 frames.append(stops(RecallFlowEnsemble(unseen, aggregation), name, {qid: labels}, penalties))
     return pd.concat(frames, ignore_index=True)
+
+
+def bagged(name: str, label: str, test: dict, held_out: set, oob_names: list[str], extra: dict | None, collections: dict, runs: dict,
+           config: Config, penalties, output: Path):
+    """Train (or resume) one bagged ensemble, choose penalty and aggregation out-of-bag, and stop every ``test`` ranking.
+
+    ``name`` keys the saved files and the choice; ``label`` is the collection
+    written in the result rows.
+    """
+    rankings, weights, topics, thinnable = training_set(collections, runs, held_out, config, groups=True, extra=extra)
+    if config.thinning and config.fixed_thinning:
+        rankings, weights, topics = fixed_thinned(rankings, weights, topics, thinnable, config)
+    if config.iph_features:
+        oob = [labels for oob_name in oob_names for labels in collections[oob_name].values()]
+        precompute_iph(rankings + list(test.values()) + oob, config.workers, output.parent / "cache" / "iph.pkl")
+    saved, saved_bags = output / f"network-{name}.pkl", output / f"bags-{name}.json"
+    if saved.exists() and saved_bags.exists():  # resume: members already trained
+        members = pickle.loads(saved.read_bytes()).members
+        bags = [set(bag) for bag in json.loads(saved_bags.read_text())]
+    else:
+        salt = COLLECTIONS.index(name) if name in COLLECTIONS else 3 + sum(map(ord, name))
+        members, bags = fit_bagged(rankings, weights, topics, config, salt=salt)
+        with open(saved, "wb") as handle:
+            pickle.dump(RecallFlowEnsemble(members), handle)
+        with open(saved_bags, "w") as handle:
+            json.dump([sorted(bag) for bag in bags], handle)
+    plan, frames = {}, []
+    for aggregation in ("mean", "min"):
+        validation = out_of_bag(members, bags, collections, oob_names, penalties, aggregation)
+        validation.assign(test=name, aggregation=aggregation).to_csv(output / f"validation-{name}-{aggregation}.csv", index=False)
+        for target, penalty in select_penalties(validation, config.reliability_goal, config.selection).items():
+            rows = validation.loc[(validation.target == target) & (validation.penalty == penalty)]
+            score = (rows.reliable.mean() >= config.reliability_goal, -rows.review_fraction.mean(), rows.reliable.mean())
+            if target not in plan or score > plan[target][2]:
+                plan[target] = (aggregation, penalty, score)
+        frames.append(stops(RecallFlowEnsemble(members, aggregation), label, test, penalties).assign(aggregation=aggregation))
+    frame = pd.concat(frames, ignore_index=True)
+    picks = frame.loc[[(plan[target][0], plan[target][1]) == (aggregation, penalty)
+                       for target, aggregation, penalty in zip(frame.target, frame.aggregation, frame.penalty)]]
+    return frame, picks, {str(target): {"penalty": penalty, "aggregation": aggregation} for target, (aggregation, penalty, _) in plan.items()}
 
 
 def stops(network, collection: str, rankings: dict, penalties=PENALTIES) -> pd.DataFrame:
@@ -250,6 +343,7 @@ def main() -> None:
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "config.json").write_text(json.dumps(asdict(config), indent=2) + "\n")
     tar_flow.POWER_FEATURES = config.power_features
+    tar_flow.IPH_FEATURES = config.iph_features
     penalties = tuple(penalty for penalty in PENALTIES if penalty <= config.max_penalty)
     collections, runs = load(args.data)
     grid, selected, choices = [], [], {}
@@ -260,40 +354,37 @@ def main() -> None:
         frame = pd.read_parquet(args.external)
         collections[external] = {qid: group.sort_values("rank").label.to_numpy() for qid, group in frame.groupby("qid", sort=False)}
         args.test = [external]
+        if config.external_folds:
+            # In-domain training: each fold of external topics is scored by a model also trained on the other folds.
+            topics = sorted(collections[external])
+            order = np.random.default_rng(config.seed).permutation(len(topics))
+            fold_of = {topics[index]: int(rank % config.external_folds) for rank, index in enumerate(order)}
+            (args.output / f"folds-{external}.json").write_text(json.dumps(fold_of, indent=2) + "\n")
+            for fold in range(config.external_folds):
+                started = time.time()
+                training = {qid: labels for qid, labels in collections[external].items() if fold_of[qid] != fold}
+                testing = {qid: labels for qid, labels in collections[external].items() if fold_of[qid] == fold}
+                train_name = f"{external}-train{fold}"
+                collections[train_name] = training
+                oob_names = [train_name] if config.select_on == "external" else [*COLLECTIONS, "clef2017train"]
+                frame, picks, choice = bagged(f"{external}-fold{fold}", external, testing, set(), oob_names, {train_name: training},
+                                              collections, runs, config, penalties, args.output)
+                grid.append(frame)
+                selected.append(picks)
+                choices[f"{external}-fold{fold}"] = choice
+                print(f"{external} fold {fold}: {choice}; {time.time() - started:.0f}s", flush=True)
+                print(picks.groupby("target")[["reliable", "review_fraction"]].mean().round(4).to_string(), flush=True)
+            args.test = []
     for test in args.test:
         started = time.time()
         if config.bagging:
             held_out = {test} if test in COLLECTIONS else set()  # an external collection holds out nothing from CLEF
-            rankings, weights, topics = training_set(collections, runs, held_out, config, groups=True)
-            saved, saved_bags = args.output / f"network-{test}.pkl", args.output / f"bags-{test}.json"
-            if saved.exists() and saved_bags.exists():  # resume: a fold whose members were already trained
-                members = pickle.loads(saved.read_bytes()).members
-                bags = [set(bag) for bag in json.loads(saved_bags.read_text())]
-            else:
-                members, bags = fit_bagged(rankings, weights, topics, config, salt=COLLECTIONS.index(test) if test in COLLECTIONS else 3)
-                with open(saved, "wb") as handle:
-                    pickle.dump(RecallFlowEnsemble(members), handle)
-                with open(saved_bags, "w") as handle:
-                    json.dump([sorted(bag) for bag in bags], handle)
             names = [name for name in (*COLLECTIONS, "clef2017train") if name != test]
-            plan, frames = {}, []
-            for aggregation in ("mean", "min"):
-                validation = out_of_bag(members, bags, collections, names, penalties, aggregation)
-                validation.assign(test=test, aggregation=aggregation).to_csv(args.output / f"validation-{test}-{aggregation}.csv", index=False)
-                for target, penalty in select_penalties(validation, config.reliability_goal, config.selection).items():
-                    rows = validation.loc[(validation.target == target) & (validation.penalty == penalty)]
-                    score = (rows.reliable.mean() >= config.reliability_goal, -rows.review_fraction.mean(), rows.reliable.mean())
-                    if target not in plan or score > plan[target][2]:
-                        plan[target] = (aggregation, penalty, score)
-                test_frame = stops(RecallFlowEnsemble(members, aggregation), test, collections[test], penalties)
-                frames.append(test_frame.assign(aggregation=aggregation))
-            frame = pd.concat(frames, ignore_index=True)
+            frame, picks, choice = bagged(test, test, collections[test], held_out, names, None, collections, runs, config, penalties, args.output)
             grid.append(frame)
-            picks = frame.loc[[(plan[target][0], plan[target][1]) == (aggregation, penalty)
-                               for target, aggregation, penalty in zip(frame.target, frame.aggregation, frame.penalty)]]
             selected.append(picks)
-            choices[test] = {str(target): {"penalty": penalty, "aggregation": aggregation} for target, (aggregation, penalty, _) in plan.items()}
-            print(f"{test}: {choices[test]}; training rankings {len(rankings)}; {time.time() - started:.0f}s", flush=True)
+            choices[test] = choice
+            print(f"{test}: {choice}; {time.time() - started:.0f}s", flush=True)
             print(picks.groupby("target")[["reliable", "review_fraction"]].mean().round(4).to_string(), flush=True)
             continue
         validation = []

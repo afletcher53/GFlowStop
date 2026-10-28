@@ -146,11 +146,22 @@ def main() -> None:
 
     rules = []
     for name, folder in zip(names, args.flow):
-        networks = {test: pickle.loads((folder / f"network-{test}.pkl").read_bytes()) for test in args.collections}
+        # A collection scored by in-domain folds has one network per fold (folds-<collection>.json maps topics to folds).
+        folds = {test: json.loads((folder / f"folds-{test}.json").read_text()) for test in args.collections
+                 if (folder / f"folds-{test}.json").exists()}
+        networks = {}
+        for test in args.collections:
+            if test in folds:
+                for fold in sorted(set(folds[test].values())):
+                    networks[f"{test}-fold{fold}"] = pickle.loads((folder / f"network-{test}-fold{fold}.pkl").read_bytes())
+            else:
+                networks[test] = pickle.loads((folder / f"network-{test}.pkl").read_bytes())
         penalties = json.loads((folder / "penalties.json").read_text())
 
-        def factory(context, networks=networks, penalties=penalties):
+        def factory(context, networks=networks, penalties=penalties, folds=folds):
             test = collection(context.trajectory)
+            if test in folds:
+                test = f"{test}-fold{folds[test][str(context.trajectory.qid.iloc[0])]}"
             choice = penalties[test][str(context.target)]
             if isinstance(choice, dict):  # bagged runs also choose the ensemble aggregation
                 network = RecallFlowEnsemble(networks[test].members, choice["aggregation"])

@@ -512,3 +512,40 @@ fit each ranking's own gain curve with no training, travel better. A learned
 stopper of this kind needs training rankings from the regime it is deployed in,
 for example leave-one-review-out within SYNERGY, or a calibration step on a few
 reviews from the target collection.
+
+## Revision 5 (declared before its runs)
+
+The SYNERGY result points at three remedies, tried here:
+
+1. **Few-review calibration.** Choose the penalty and aggregation on `k`
+   labelled topics of the target collection; score the rest
+   (`scripts/calibrate_on_few.py`, 200 random draws per `k`).
+2. **IP-H as an input feature.** At each checkpoint the network also sees
+   pyterrier-tar's IP-H (`tail='model'`) state from its own checkpoints (every
+   2.5% of the pool), each computed from the reviewed prefix only (tested):
+   * whether the latest fit was accepted;
+   * the last accepted fit's estimated and Poisson-bound recall, with their
+     log-odds margins from the target;
+   * whether the latter windows were empty;
+   * how long ago the last accepted fit was taken.
+3. **Training in the target domain.** SYNERGY's 26 reviews are split into five
+   folds. Each fold is scored by a ten-member ensemble trained on all of CLEF
+   plus the other folds' reviews (weight 3 each, thinned like AutoTAR). Its
+   penalty and aggregation are chosen out-of-bag on those in-domain reviews
+   only.
+
+To keep five-fold training affordable, revision 5 thins only the AutoTAR and
+SYNERGY rankings (not the participant runs) and fixes each ranking's sub-pools
+across members. A control with the same settings but without the IP-H feature
+is run as well. The runs:
+
+| Run | Training | IP-H feature | Selection |
+| --- | --- | --- | --- |
+| S0 | all CLEF | no | out-of-bag on CLEF |
+| S3 | all CLEF | yes | out-of-bag on CLEF |
+| S1 | CLEF + other SYNERGY folds | yes | out-of-bag on in-domain reviews |
+| C0 | CLEF, leave one collection out | no | out-of-bag on CLEF |
+| C3 | CLEF, leave one collection out | yes | out-of-bag on CLEF |
+
+The gates are unchanged. S0, S3 and S1 are scored on the 26 SYNERGY reviews and
+C0, C3 on the 91 CLEF topics. RLStop stays trained on CLEF only.
