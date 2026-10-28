@@ -642,14 +642,17 @@ difference):
   reliability is identical (100%, 93.3%, 100%) and review is lower in every
   year (14.7 / 13.2 / 15.3% against 16.3 / 17.4 / 21.7%).
 * **At 0.9 it also beats** IP-E (−3.6 [−6.5, −0.6], +2.2 points reliability),
-  ConsecutiveIrrelevant (−6.4 [−10.5, −2.2], equal reliability), the published
-  IP-H and CX-H.
+  ConsecutiveIrrelevant (−6.4 [−10.5, −2.2], equal reliability) and CX-H
+  (−4.6 [−7.6, −1.5], +6.6). Against the published IP-H at 0.9 it is +7.7
+  points more reliable, but the review interval [−5.2, +0.6] includes zero.
+  (A first version of this paragraph wrongly listed it as a win.)
 * **At 0.8 it beats IP-E** (equal 98.9% reliability, −6.8 [−9.6, −3.9]), the
-  published IP-H and CX-H. Against IP-H (`tail='model'`) it is 7.3 points
-  cheaper but misses one more topic, a trade-off.
-* **At 0.95 there is no gate win.** It has the same reliability as IP-H
-  (`tail='model'`) and is 2.8 points cheaper, but the interval [−6.1, +0.7]
-  includes zero.
+  published IP-H (−5.7 [−8.5, −2.9], +5.5) and CX-H. Against IP-H
+  (`tail='model'`) it is 7.3 points cheaper but misses one more topic, a
+  trade-off.
+* **At 0.95 the only gate win is against BatchPrecision.** It has the same
+  reliability as IP-H (`tail='model'`) and is 2.8 points cheaper, but the
+  interval [−6.1, +0.7] includes zero.
 * **It does not beat IP-P at any target.** IP-P is reliable on every topic at
   28–29% review.
 * **The IP-H feature itself helps on CLEF.** Against C0, which is identical but
