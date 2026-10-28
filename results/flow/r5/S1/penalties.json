@@ -1,0 +1,72 @@
+{
+  "synergy-fold0": {
+    "0.8": {
+      "penalty": 64.0,
+      "aggregation": "mean"
+    },
+    "0.9": {
+      "penalty": 16.0,
+      "aggregation": "min"
+    },
+    "0.95": {
+      "penalty": 32.0,
+      "aggregation": "mean"
+    }
+  },
+  "synergy-fold1": {
+    "0.8": {
+      "penalty": 8.0,
+      "aggregation": "mean"
+    },
+    "0.9": {
+      "penalty": 256.0,
+      "aggregation": "mean"
+    },
+    "0.95": {
+      "penalty": 256.0,
+      "aggregation": "mean"
+    }
+  },
+  "synergy-fold2": {
+    "0.8": {
+      "penalty": 8.0,
+      "aggregation": "min"
+    },
+    "0.9": {
+      "penalty": 128.0,
+      "aggregation": "min"
+    },
+    "0.95": {
+      "penalty": 256.0,
+      "aggregation": "mean"
+    }
+  },
+  "synergy-fold3": {
+    "0.8": {
+      "penalty": 32.0,
+      "aggregation": "mean"
+    },
+    "0.9": {
+      "penalty": 32.0,
+      "aggregation": "min"
+    },
+    "0.95": {
+      "penalty": 256.0,
+      "aggregation": "mean"
+    }
+  },
+  "synergy-fold4": {
+    "0.8": {
+      "penalty": 8.0,
+      "aggregation": "min"
+    },
+    "0.9": {
+      "penalty": 8.0,
+      "aggregation": "min"
+    },
+    "0.95": {
+      "penalty": 8.0,
+      "aggregation": "min"
+    }
+  }
+}

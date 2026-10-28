@@ -577,3 +577,43 @@ penalties, so the choice is too aggressive, and out-of-bag selection over about
 calibration raises reliability as `k` grows, but only by moving up a frontier
 that is no better than IP-H's. In no draw is it both cheaper and as reliable.
 Choosing the operating point better cannot fix a model that is not better.
+
+### Results of remedies 2 and 3 on SYNERGY
+
+Scored on the 26 reviews through pyterrier-tar (`results/flow/r5/`). Each cell
+is reliability / review:
+
+| Rule | 0.8 | 0.9 | 0.95 |
+| --- | --- | --- | --- |
+| S1: CLEF + in-domain folds, IP-H feature, in-domain selection | 100% / 48.5% | 96.2% / 78.1% | 96.2% / 79.1% |
+| S3: CLEF only, IP-H feature | 88.5% / 31.1% | 88.5% / 57.3% | 88.5% / 68.5% |
+| S0: CLEF only, control | 73.1% / 20.8% | 80.8% / 39.4% | 96.2% / 75.0% |
+| r4 (earlier, CLEF only) | 80.8% / 23.2% | 80.8% / 43.8% | 88.5% / 56.4% |
+| IP-H (`tail='model'`) | 92.3% / 34.2% | 84.6% / 35.6% | 80.8% / 39.2% |
+| IP-P | 92.3% / 47.6% | 88.5% / 50.6% | 84.6% / 52.7% |
+| Budget | 100% / 53.3% | 88.5% / 53.3% | 88.5% / 53.3% |
+| CMHHeuristic | 100% / 55.7% | 100% / 70.7% | 100% / 81.9% |
+
+The penalty grids (descriptive) at a penalty of 4 with averaged flows:
+
+| Run | 0.8 | 0.9 | 0.95 |
+| --- | --- | --- | --- |
+| S1 (in-domain, IP-H) | 92.3% / 32.2% | 92.3% / 46.8% | 88.5% / 56.2% |
+| S3 (CLEF, IP-H) | 92.3% / 37.9% | 88.5% / 51.0% | 84.6% / 57.8% |
+| S0 (CLEF, control) | 88.5% / 34.3% | 92.3% / 52.8% | 92.3% / 64.1% |
+
+* **In-domain training improves the network itself.** At the same penalty, S1
+  reaches more reviews for less review than either CLEF-only network. At 0.8
+  and a penalty of 4 its grid matches IP-H (`tail='model'`) (92.3% / 32.2%
+  against 92.3% / 34.2%). At 0.9 it beats IP-P (92.3% / 46.8% against 88.5%
+  / 50.6%), though reading the grid uses test labels.
+* **In-domain selection is too cautious to show it.** About 21 in-domain
+  validation reviews and a 0.975 goal mean no out-of-bag miss is tolerated, so
+  the chosen penalties were 8–256. S1 is the most reliable learned rule on
+  SYNERGY (100%, 96.2%, 96.2%), but expensive.
+* **Gates.** S1 beats only Kneedle at 0.8. Against CMH at 0.8 it has the same
+  100% reliability for 7.2 points less review, but the interval [−16.1, +2.0]
+  includes zero with 26 reviews. S3 and S0 beat nothing.
+* **The IP-H feature is not clearly useful on SYNERGY.** S3 against the S0
+  control is more reliable at 0.8 and 0.9 and less at 0.95, with no consistent
+  frontier gain.
