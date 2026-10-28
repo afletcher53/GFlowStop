@@ -617,3 +617,61 @@ The penalty grids (descriptive) at a penalty of 4 with averaged flows:
 * **The IP-H feature is not clearly useful on SYNERGY.** S3 against the S0
   control is more reliable at 0.8 and 0.9 and less at 0.95, with no consistent
   frontier gain.
+
+### Results of remedy 2 on CLEF (C3 against its control C0)
+
+Leave one collection out, scored through pyterrier-tar on the 91 topics
+(`results/flow/r5/clef_compare/`, figure `results/flow/clef_frontier_r5_C3.png`).
+Each cell is reliability / review:
+
+| Rule | 0.8 | 0.9 | 0.95 |
+| --- | --- | --- | --- |
+| **C3: revision 5 with the IP-H feature** | 98.9% / 10.3% | 97.8% / 14.4% | 97.8% / 17.2% |
+| C0: revision 5 control, no IP-H feature | 97.8% / 9.8% | 96.7% / 12.9% | 96.7% / 19.0% |
+| GFlowStop r4 | 96.7% / 8.8% | 95.6% / 12.3% | 94.5% / 19.0% |
+| IP-H (`tail='model'`) | 100% / 17.6% | 97.8% / 18.5% | 97.8% / 20.0% |
+| IP-E | 98.9% / 17.1% | 95.6% / 18.0% | 94.5% / 19.4% |
+| ConsecutiveIrrelevant | 100% / 20.8% | 97.8% / 20.8% | 95.6% / 20.8% |
+| IP-P | 100% / 27.7% | 100% / 28.6% | 100% / 28.9% |
+
+Against the gates (paired topic-bootstrap 95% intervals for the review
+difference):
+
+* **At 0.9, C3 beats IP-H (`tail='model'`).** It has the same 97.8%
+  reliability and reviews 4.1 points less [−6.9, −1.3]. By collection,
+  reliability is identical (100%, 93.3%, 100%) and review is lower in every
+  year (14.7 / 13.2 / 15.3% against 16.3 / 17.4 / 21.7%).
+* **At 0.9 it also beats** IP-E (−3.6 [−6.5, −0.6], +2.2 points reliability),
+  ConsecutiveIrrelevant (−6.4 [−10.5, −2.2], equal reliability), the published
+  IP-H and CX-H.
+* **At 0.8 it beats IP-E** (equal 98.9% reliability, −6.8 [−9.6, −3.9]), the
+  published IP-H and CX-H. Against IP-H (`tail='model'`) it is 7.3 points
+  cheaper but misses one more topic, a trade-off.
+* **At 0.95 there is no gate win.** It has the same reliability as IP-H
+  (`tail='model'`) and is 2.8 points cheaper, but the interval [−6.1, +0.7]
+  includes zero.
+* **It does not beat IP-P at any target.** IP-P is reliable on every topic at
+  28–29% review.
+* **The IP-H feature itself helps on CLEF.** Against C0, which is identical but
+  for the feature, C3 reaches one more topic at every target, for +0.5 and
+  +1.5 points of review at 0.8 and 0.9 and −1.8 at 0.95. C0 also improves on
+  revision 4, from the fixed thinning that excludes runs.
+
+Caveat, as before: this is the fifth configuration evaluated on the same 91
+CLEF topics. On SYNERGY, which none of them shaped, the IP-H feature showed no
+consistent gain and no configuration passed a gate against the IP-H family.
+
+## Where this leaves the work
+
+* **The formulation is sound.** A flow network with risk-neutral chance nodes
+  recovers the Bayes policy where the fixed-chain and expected-flow
+  constructions do not.
+* **On CLEF, the best configuration beats every cheap estimator at target 0.9.**
+  C3 has IP-H, a reward-structured network, thinning, a subbagged ensemble and
+  out-of-bag selection, and it beats IP-H (`tail='model'`) itself at 0.9.
+  It reviews 4–20 points less than every rule that reaches 100%.
+* **Outside CLEF it does not transfer.** On SYNERGY's much weaker simulated
+  rankings it beats no point-process rule. In-domain training improves its
+  frontier there, but 26 reviews are too few both to choose a safe operating
+  point and to establish a difference.
+* **Few-review calibration does not help** on either collection.

@@ -1,0 +1,44 @@
+{
+  "clef2017": {
+    "0.8": {
+      "penalty": 1.0,
+      "aggregation": "mean"
+    },
+    "0.9": {
+      "penalty": 2.0,
+      "aggregation": "mean"
+    },
+    "0.95": {
+      "penalty": 2.0,
+      "aggregation": "mean"
+    }
+  },
+  "clef2018": {
+    "0.8": {
+      "penalty": 16.0,
+      "aggregation": "mean"
+    },
+    "0.9": {
+      "penalty": 2.0,
+      "aggregation": "min"
+    },
+    "0.95": {
+      "penalty": 1.0,
+      "aggregation": "min"
+    }
+  },
+  "clef2019": {
+    "0.8": {
+      "penalty": 0.5,
+      "aggregation": "min"
+    },
+    "0.9": {
+      "penalty": 2.0,
+      "aggregation": "min"
+    },
+    "0.95": {
+      "penalty": 8.0,
+      "aggregation": "mean"
+    }
+  }
+}
