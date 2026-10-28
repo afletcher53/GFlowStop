@@ -1,0 +1,26 @@
+RLStop synergy 0.8: trained on 100 topics
+RLStop synergy 0.9: trained on 100 topics
+RLStop synergy 0.95: trained on 100 topics
+                                   reliability               review            
+target                                    0.80   0.90   0.95   0.80  0.90  0.95
+rule                                                                           
+RLStop                                    15.4    3.8   11.5    1.7   2.4   4.3
+ConsecutiveIrrelevant                     73.1   57.7   53.8   27.6  27.6  27.6
+Oracle (offline bound)                   100.0  100.0  100.0   19.7  27.7  32.5
+IPHyperbolic (IP-H)                       84.6   73.1   69.2   31.0  31.4  33.5
+BatchPrecision                            76.9   65.4   57.7   32.0  32.0  32.0
+IPHyperbolic (CX-H), process='cox'        84.6   76.9   61.5   33.7  33.7  34.2
+IPExponential (IP-E)                      88.5   76.9   73.1   33.4  34.4  36.6
+IPHyperbolic (IP-H), tail='model'         92.3   84.6   80.8   34.2  35.6  39.2
+GFlowStop r4                              80.8   80.8   88.5   23.2  43.8  56.4
+PoissonPoint (CX-P), process='cox'        92.3   88.5   84.6   47.3  50.1  52.1
+IPAPPrior (IP-A), tail='model'            88.5   84.6   80.8   48.5  50.2  51.5
+PoissonPoint (IP-P)                       92.3   88.5   84.6   47.6  50.6  52.7
+Budget                                   100.0   88.5   88.5   53.3  53.3  53.3
+ReviewHalf                                96.2   80.8   73.1   55.8  55.8  55.8
+CMHHeuristic                             100.0  100.0  100.0   55.7  70.7  81.9
+Rule2399                                  92.3   92.3   92.3   71.1  71.1  71.1
+SWIFTRecall                              100.0   96.2  100.0   67.8  76.6  87.1
+Kneedle                                  100.0   96.2   96.2   78.7  78.7  78.7
+AnytimeCMH                               100.0  100.0  100.0   73.6  87.8  95.6
+BetaBinomial                             100.0  100.0  100.0   89.4  96.4  98.9

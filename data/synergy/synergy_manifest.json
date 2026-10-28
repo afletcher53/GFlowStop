@@ -1,0 +1,210 @@
+[
+  {
+    "qid": "Appenzeller-Herzog_2019",
+    "pool": 2873,
+    "relevant": 26,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.11938739993038636,
+    "seconds": 3.1
+  },
+  {
+    "qid": "Bos_2018",
+    "pool": 4878,
+    "relevant": 10,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.12197621976219762,
+    "seconds": 5.7
+  },
+  {
+    "qid": "Brouwer_2019",
+    "pool": 38114,
+    "relevant": 62,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.015296216613317941,
+    "seconds": 216.9
+  },
+  {
+    "qid": "Chou_2003",
+    "pool": 1908,
+    "relevant": 15,
+    "without_text": 1,
+    "oracle_review_at_0.9": 0.6325995807127882,
+    "seconds": 2.1
+  },
+  {
+    "qid": "Chou_2004",
+    "pool": 1630,
+    "relevant": 9,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.756441717791411,
+    "seconds": 1.7
+  },
+  {
+    "qid": "Donners_2021",
+    "pool": 258,
+    "relevant": 15,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.24806201550387597,
+    "seconds": 0.5
+  },
+  {
+    "qid": "Hall_2012",
+    "pool": 8793,
+    "relevant": 104,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.021153190037529853,
+    "seconds": 11.5
+  },
+  {
+    "qid": "Jeyaraman_2020",
+    "pool": 1175,
+    "relevant": 96,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.31063829787234043,
+    "seconds": 1.9
+  },
+  {
+    "qid": "Leenaars_2019",
+    "pool": 5812,
+    "relevant": 17,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.012216104611149347,
+    "seconds": 9.0
+  },
+  {
+    "qid": "Leenaars_2020",
+    "pool": 7216,
+    "relevant": 583,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.22865853658536586,
+    "seconds": 12.6
+  },
+  {
+    "qid": "Meijboom_2021",
+    "pool": 882,
+    "relevant": 37,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.1564625850340136,
+    "seconds": 1.1
+  },
+  {
+    "qid": "Menon_2022",
+    "pool": 975,
+    "relevant": 74,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.2594871794871795,
+    "seconds": 1.6
+  },
+  {
+    "qid": "Moran_2021",
+    "pool": 5214,
+    "relevant": 111,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.770042194092827,
+    "seconds": 7.9
+  },
+  {
+    "qid": "Muthu_2021",
+    "pool": 2719,
+    "relevant": 336,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.48032364840014713,
+    "seconds": 4.1
+  },
+  {
+    "qid": "Nelson_2002",
+    "pool": 366,
+    "relevant": 80,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.5628415300546448,
+    "seconds": 0.6
+  },
+  {
+    "qid": "Oud_2018",
+    "pool": 952,
+    "relevant": 20,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.6355042016806722,
+    "seconds": 1.1
+  },
+  {
+    "qid": "Radjenovic_2013",
+    "pool": 5935,
+    "relevant": 48,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.0569502948609941,
+    "seconds": 6.7
+  },
+  {
+    "qid": "Sep_2021",
+    "pool": 271,
+    "relevant": 40,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.6014760147601476,
+    "seconds": 0.5
+  },
+  {
+    "qid": "Smid_2020",
+    "pool": 2627,
+    "relevant": 27,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.10468214693566806,
+    "seconds": 2.4
+  },
+  {
+    "qid": "Walker_2018",
+    "pool": 48375,
+    "relevant": 762,
+    "without_text": 5,
+    "oracle_review_at_0.9": 0.17333333333333334,
+    "seconds": 338.1
+  },
+  {
+    "qid": "Wassenaar_2017",
+    "pool": 7668,
+    "relevant": 111,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.14475743348982786,
+    "seconds": 11.8
+  },
+  {
+    "qid": "Wolters_2018",
+    "pool": 4280,
+    "relevant": 19,
+    "without_text": 2,
+    "oracle_review_at_0.9": 0.10257009345794392,
+    "seconds": 6.0
+  },
+  {
+    "qid": "van_Dis_2020",
+    "pool": 9128,
+    "relevant": 72,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.14362401402278702,
+    "seconds": 15.2
+  },
+  {
+    "qid": "van_de_Schoot_2018",
+    "pool": 4544,
+    "relevant": 38,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.04753521126760563,
+    "seconds": 5.9
+  },
+  {
+    "qid": "van_der_Valk_2021",
+    "pool": 725,
+    "relevant": 89,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.4193103448275862,
+    "seconds": 1.0
+  },
+  {
+    "qid": "van_der_Waal_2022",
+    "pool": 1970,
+    "relevant": 33,
+    "without_text": 0,
+    "oracle_review_at_0.9": 0.0883248730964467,
+    "seconds": 2.8
+  }
+]

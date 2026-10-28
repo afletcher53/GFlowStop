@@ -1,0 +1,24 @@
+clef2017: {'0.8': {'penalty': 2.0, 'aggregation': 'mean'}, '0.9': {'penalty': 2.0, 'aggregation': 'mean'}, '0.95': {'penalty': 16.0, 'aggregation': 'mean'}}; 548s
+        reliable  review_fraction
+target                           
+0.80      0.9667           0.1069
+0.90      0.9667           0.1412
+0.95      1.0000           0.2058
+clef2018: {'0.8': {'penalty': 16.0, 'aggregation': 'mean'}, '0.9': {'penalty': 8.0, 'aggregation': 'mean'}, '0.95': {'penalty': 16.0, 'aggregation': 'mean'}}; 555s
+        reliable  review_fraction
+target                           
+0.80      1.0000           0.0918
+0.90      0.9333           0.1179
+0.95      0.9333           0.1898
+clef2019: {'0.8': {'penalty': 2.0, 'aggregation': 'mean'}, '0.9': {'penalty': 4.0, 'aggregation': 'mean'}, '0.95': {'penalty': 8.0, 'aggregation': 'mean'}}; 670s
+        reliable  review_fraction
+target                           
+0.80      0.9677           0.0947
+0.90      1.0000           0.1285
+0.95      0.9677           0.1746
+pooled selected:
+        reliable  review_fraction
+target                           
+0.80       0.978           0.0977
+0.90       0.967           0.1292
+0.95       0.967           0.1899

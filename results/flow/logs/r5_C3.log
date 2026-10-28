@@ -1,0 +1,27 @@
+IP-H features: 0 rankings computed, 3735 cached
+clef2017: {'0.8': {'penalty': 1.0, 'aggregation': 'mean'}, '0.9': {'penalty': 2.0, 'aggregation': 'mean'}, '0.95': {'penalty': 2.0, 'aggregation': 'mean'}}; 147s
+        reliable  review_fraction
+target                           
+0.80         1.0           0.1032
+0.90         1.0           0.1465
+0.95         1.0           0.1757
+IP-H features: 0 rankings computed, 3735 cached
+clef2018: {'0.8': {'penalty': 16.0, 'aggregation': 'mean'}, '0.9': {'penalty': 2.0, 'aggregation': 'min'}, '0.95': {'penalty': 1.0, 'aggregation': 'min'}}; 92s
+        reliable  review_fraction
+target                           
+0.80      1.0000           0.0980
+0.90      0.9333           0.1321
+0.95      0.9333           0.1514
+IP-H features: 0 rankings computed, 3735 cached
+clef2019: {'0.8': {'penalty': 0.5, 'aggregation': 'min'}, '0.9': {'penalty': 2.0, 'aggregation': 'min'}, '0.95': {'penalty': 8.0, 'aggregation': 'mean'}}; 855s
+        reliable  review_fraction
+target                           
+0.80      0.9677           0.1082
+0.90      1.0000           0.1531
+0.95      1.0000           0.1891
+pooled selected:
+        reliable  review_fraction
+target                           
+0.80       0.989           0.1032
+0.90       0.978           0.1440
+0.95       0.978           0.1722

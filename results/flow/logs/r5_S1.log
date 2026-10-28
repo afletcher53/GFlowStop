@@ -1,0 +1,41 @@
+IP-H features: 0 rankings computed, 2851 cached
+synergy fold 0: {'0.8': {'penalty': 64.0, 'aggregation': 'mean'}, '0.9': {'penalty': 16.0, 'aggregation': 'min'}, '0.95': {'penalty': 32.0, 'aggregation': 'mean'}}; 474s
+        reliable  review_fraction
+target                           
+0.80      1.0000           0.5694
+0.90      0.8333           0.7787
+0.95      0.8333           0.6957
+IP-H features: 0 rankings computed, 2851 cached
+synergy fold 1: {'0.8': {'penalty': 8.0, 'aggregation': 'mean'}, '0.9': {'penalty': 256.0, 'aggregation': 'mean'}, '0.95': {'penalty': 256.0, 'aggregation': 'mean'}}; 488s
+        reliable  review_fraction
+target                           
+0.80         1.0           0.5469
+0.90         1.0           0.8792
+0.95         1.0           0.9656
+IP-H features: 0 rankings computed, 2851 cached
+synergy fold 2: {'0.8': {'penalty': 8.0, 'aggregation': 'min'}, '0.9': {'penalty': 128.0, 'aggregation': 'min'}, '0.95': {'penalty': 256.0, 'aggregation': 'mean'}}; 498s
+        reliable  review_fraction
+target                           
+0.80         1.0           0.4622
+0.90         1.0           0.8061
+0.95         1.0           0.6081
+IP-H features: 0 rankings computed, 2851 cached
+synergy fold 3: {'0.8': {'penalty': 32.0, 'aggregation': 'mean'}, '0.9': {'penalty': 32.0, 'aggregation': 'min'}, '0.95': {'penalty': 256.0, 'aggregation': 'mean'}}; 512s
+        reliable  review_fraction
+target                           
+0.80         1.0           0.3391
+0.90         1.0           0.8890
+0.95         1.0           0.7864
+IP-H features: 0 rankings computed, 2851 cached
+synergy fold 4: {'0.8': {'penalty': 8.0, 'aggregation': 'min'}, '0.9': {'penalty': 8.0, 'aggregation': 'min'}, '0.95': {'penalty': 8.0, 'aggregation': 'min'}}; 511s
+        reliable  review_fraction
+target                           
+0.80         1.0           0.4908
+0.90         1.0           0.5544
+0.95         1.0           0.9191
+pooled selected:
+        reliable  review_fraction
+target                           
+0.80      1.0000           0.4850
+0.90      0.9615           0.7814
+0.95      0.9615           0.7911

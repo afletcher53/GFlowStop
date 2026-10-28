@@ -1,0 +1,12 @@
+synergy: {'0.8': {'penalty': 1.0, 'aggregation': 'mean'}, '0.9': {'penalty': 2.0, 'aggregation': 'mean'}, '0.95': {'penalty': 2.0, 'aggregation': 'mean'}}; training rankings 1543; 7007s
+        reliable  review_fraction
+target                           
+0.80      0.8077           0.2315
+0.90      0.8077           0.4379
+0.95      0.8846           0.5644
+pooled selected:
+        reliable  review_fraction
+target                           
+0.80      0.8077           0.2315
+0.90      0.8077           0.4379
+0.95      0.8846           0.5644

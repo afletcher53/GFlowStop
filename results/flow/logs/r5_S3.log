@@ -1,0 +1,13 @@
+IP-H features: 0 rankings computed, 2851 cached
+synergy: {'0.8': {'penalty': 2.0, 'aggregation': 'mean'}, '0.9': {'penalty': 1.0, 'aggregation': 'min'}, '0.95': {'penalty': 2.0, 'aggregation': 'min'}}; 497s
+        reliable  review_fraction
+target                           
+0.80      0.8846           0.3115
+0.90      0.8846           0.5728
+0.95      0.8846           0.6854
+pooled selected:
+        reliable  review_fraction
+target                           
+0.80      0.8846           0.3115
+0.90      0.8846           0.5728
+0.95      0.8846           0.6854
