@@ -549,3 +549,31 @@ is run as well. The runs:
 
 The gates are unchanged. S0, S3 and S1 are scored on the 26 SYNERGY reviews and
 C0, C3 on the 91 CLEF topics. RLStop stays trained on CLEF only.
+
+### Result of remedy 1: few-review calibration (revision 4 networks)
+
+Each cell is reliability / review on the held-out topics, averaged over 200
+draws; IP-H (`tail='model'`) is on the same held-out topics. The last column is
+the share of draws in which calibrated GFlowStop was both cheaper and at least
+as reliable as IP-H (`tail='model'`) (`results/flow/calibration/`).
+
+| Collection | k | Target | Calibrated GFlowStop | IP-H (`tail='model'`) | Draws cheaper and as reliable |
+| --- | --- | --- | --- | --- | --- |
+| CLEF (k per collection) | 3 | 0.9 | 84.7% / 8.2% | 97.8% / 18.6% | 2% |
+| | 5 | 0.9 | 90.7% / 9.8% | 97.8% / 18.5% | 16% |
+| | 8 | 0.8 | 93.3% / 8.2% | 100% / 17.6% | 4% |
+| | 8 | 0.9 | 93.7% / 10.7% | 97.8% / 18.6% | 24% |
+| | 8 | 0.95 | 92.9% / 15.5% | 97.8% / 20.1% | 11% |
+| SYNERGY | 3 | 0.9 | 78.6% / 46.0% | 84.6% / 35.3% | 0% |
+| | 5 | 0.9 | 85.9% / 55.1% | 84.3% / 35.6% | 0% |
+| | 8 | 0.8 | 92.1% / 45.0% | 92.3% / 33.9% | 0% |
+| | 8 | 0.9 | 92.2% / 63.1% | 84.5% / 35.2% | 0% |
+| | 8 | 0.95 | 90.9% / 69.1% | 80.9% / 39.0% | 0% |
+
+**Negative on both collections.** On CLEF, a few topics cannot estimate the
+rate of rare misses. Every calibration topic reaches the target at most
+penalties, so the choice is too aggressive, and out-of-bag selection over about
+70 training topics does better (96.7% / 95.6% / 94.5%). On SYNERGY,
+calibration raises reliability as `k` grows, but only by moving up a frontier
+that is no better than IP-H's. In no draw is it both cheaper and as reliable.
+Choosing the operating point better cannot fix a model that is not better.

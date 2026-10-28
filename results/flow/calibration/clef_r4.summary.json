@@ -1,0 +1,497 @@
+[
+ {
+  "k":3,
+  "target":0.8,
+  "reliability":0.8890853659,
+  "review":0.0665052878,
+  "IPHyperbolic (IP-H), tail='model'|review_difference":-0.1097982618,
+  "IPHyperbolic (IP-H), tail='model'|review_range":[
+   -0.1299283916,
+   -0.0782641819
+  ],
+  "IPHyperbolic (IP-H), tail='model'|reliability_difference":-0.1109146341,
+  "IPHyperbolic (IP-H), tail='model'|share_cheaper_and_as_reliable":0.0,
+  "IPHyperbolic (IP-H)|review_difference":-0.0944483087,
+  "IPHyperbolic (IP-H)|review_range":[
+   -0.113255662,
+   -0.0618507227
+  ],
+  "IPHyperbolic (IP-H)|reliability_difference":-0.0451829268,
+  "IPHyperbolic (IP-H)|share_cheaper_and_as_reliable":0.18,
+  "IPExponential (IP-E)|review_difference":-0.1045859954,
+  "IPExponential (IP-E)|review_range":[
+   -0.1241367233,
+   -0.0730953265
+  ],
+  "IPExponential (IP-E)|reliability_difference":-0.0997560976,
+  "IPExponential (IP-E)|share_cheaper_and_as_reliable":0.01,
+  "PoissonPoint (IP-P)|review_difference":-0.2109883772,
+  "PoissonPoint (IP-P)|review_range":[
+   -0.2334121102,
+   -0.1744769137
+  ],
+  "PoissonPoint (IP-P)|reliability_difference":-0.1109146341,
+  "PoissonPoint (IP-P)|share_cheaper_and_as_reliable":0.0,
+  "ConsecutiveIrrelevant|review_difference":-0.1424541005,
+  "ConsecutiveIrrelevant|review_range":[
+   -0.1648756614,
+   -0.1090451001
+  ],
+  "ConsecutiveIrrelevant|reliability_difference":-0.1109146341,
+  "ConsecutiveIrrelevant|share_cheaper_and_as_reliable":0.0,
+  "CMHHeuristic|review_difference":-0.411015155,
+  "CMHHeuristic|review_range":[
+   -0.4371388139,
+   -0.3781217757
+  ],
+  "CMHHeuristic|reliability_difference":-0.1109146341,
+  "CMHHeuristic|share_cheaper_and_as_reliable":0.0,
+  "Budget|review_difference":-0.3739533089,
+  "Budget|review_range":[
+   -0.4037158854,
+   -0.338944098
+  ],
+  "Budget|reliability_difference":-0.1109146341,
+  "Budget|share_cheaper_and_as_reliable":0.0
+ },
+ {
+  "k":3,
+  "target":0.9,
+  "reliability":0.8468292683,
+  "review":0.0820981557,
+  "IPHyperbolic (IP-H), tail='model'|review_difference":-0.1034885841,
+  "IPHyperbolic (IP-H), tail='model'|review_range":[
+   -0.1291257681,
+   -0.0670640733
+  ],
+  "IPHyperbolic (IP-H), tail='model'|reliability_difference":-0.1312195122,
+  "IPHyperbolic (IP-H), tail='model'|share_cheaper_and_as_reliable":0.025,
+  "IPHyperbolic (IP-H)|review_difference":-0.0859570264,
+  "IPHyperbolic (IP-H)|review_range":[
+   -0.1120486363,
+   -0.049430015
+  ],
+  "IPHyperbolic (IP-H)|reliability_difference":-0.055,
+  "IPHyperbolic (IP-H)|share_cheaper_and_as_reliable":0.305,
+  "IPExponential (IP-E)|review_difference":-0.0980209232,
+  "IPExponential (IP-E)|review_range":[
+   -0.1241124812,
+   -0.0617498944
+  ],
+  "IPExponential (IP-E)|reliability_difference":-0.1092073171,
+  "IPExponential (IP-E)|share_cheaper_and_as_reliable":0.055,
+  "PoissonPoint (IP-P)|review_difference":-0.2041630792,
+  "PoissonPoint (IP-P)|review_range":[
+   -0.2313602058,
+   -0.1640162901
+  ],
+  "PoissonPoint (IP-P)|reliability_difference":-0.1531707317,
+  "PoissonPoint (IP-P)|share_cheaper_and_as_reliable":0.0,
+  "ConsecutiveIrrelevant|review_difference":-0.1268612325,
+  "ConsecutiveIrrelevant|review_range":[
+   -0.1563433142,
+   -0.0882344702
+  ],
+  "ConsecutiveIrrelevant|reliability_difference":-0.1309756098,
+  "ConsecutiveIrrelevant|share_cheaper_and_as_reliable":0.035,
+  "CMHHeuristic|review_difference":-0.5277538609,
+  "CMHHeuristic|review_range":[
+   -0.5604716696,
+   -0.4868760821
+  ],
+  "CMHHeuristic|reliability_difference":-0.1531707317,
+  "CMHHeuristic|share_cheaper_and_as_reliable":0.0,
+  "Budget|review_difference":-0.3583604409,
+  "Budget|review_range":[
+   -0.3923174047,
+   -0.3181823922
+  ],
+  "Budget|reliability_difference":-0.1531707317,
+  "Budget|share_cheaper_and_as_reliable":0.0
+ },
+ {
+  "k":3,
+  "target":0.95,
+  "reliability":0.8229878049,
+  "review":0.1170019687,
+  "IPHyperbolic (IP-H), tail='model'|review_difference":-0.083417888,
+  "IPHyperbolic (IP-H), tail='model'|review_range":[
+   -0.1348823436,
+   -0.0046074692
+  ],
+  "IPHyperbolic (IP-H), tail='model'|reliability_difference":-0.1554268293,
+  "IPHyperbolic (IP-H), tail='model'|share_cheaper_and_as_reliable":0.015,
+  "IPHyperbolic (IP-H)|review_difference":-0.0648154931,
+  "IPHyperbolic (IP-H)|review_range":[
+   -0.115135791,
+   0.014844442
+  ],
+  "IPHyperbolic (IP-H)|reliability_difference":-0.0678658537,
+  "IPHyperbolic (IP-H)|share_cheaper_and_as_reliable":0.27,
+  "IPExponential (IP-E)|review_difference":-0.0773915741,
+  "IPExponential (IP-E)|review_range":[
+   -0.1291141262,
+   0.0011467273
+  ],
+  "IPExponential (IP-E)|reliability_difference":-0.1220731707,
+  "IPExponential (IP-E)|share_cheaper_and_as_reliable":0.105,
+  "PoissonPoint (IP-P)|review_difference":-0.1725611027,
+  "PoissonPoint (IP-P)|review_range":[
+   -0.2253682314,
+   -0.0898992451
+  ],
+  "PoissonPoint (IP-P)|reliability_difference":-0.1770121951,
+  "PoissonPoint (IP-P)|share_cheaper_and_as_reliable":0.005,
+  "ConsecutiveIrrelevant|review_difference":-0.0919574195,
+  "ConsecutiveIrrelevant|review_range":[
+   -0.146113012,
+   -0.0134530453
+  ],
+  "ConsecutiveIrrelevant|reliability_difference":-0.1332317073,
+  "ConsecutiveIrrelevant|share_cheaper_and_as_reliable":0.07,
+  "CMHHeuristic|review_difference":-0.6065807525,
+  "CMHHeuristic|review_range":[
+   -0.6526242782,
+   -0.5244191062
+  ],
+  "CMHHeuristic|reliability_difference":-0.1770121951,
+  "CMHHeuristic|share_cheaper_and_as_reliable":0.005,
+  "Budget|review_difference":-0.3234566279,
+  "Budget|review_range":[
+   -0.3708475358,
+   -0.2501881912
+  ],
+  "Budget|reliability_difference":-0.1770121951,
+  "Budget|share_cheaper_and_as_reliable":0.005
+ },
+ {
+  "k":5,
+  "target":0.8,
+  "reliability":0.9126973684,
+  "review":0.0750854779,
+  "IPHyperbolic (IP-H), tail='model'|review_difference":-0.1009796557,
+  "IPHyperbolic (IP-H), tail='model'|review_range":[
+   -0.1271708748,
+   -0.0728712615
+  ],
+  "IPHyperbolic (IP-H), tail='model'|reliability_difference":-0.0873026316,
+  "IPHyperbolic (IP-H), tail='model'|share_cheaper_and_as_reliable":0.01,
+  "IPHyperbolic (IP-H)|review_difference":-0.0855431637,
+  "IPHyperbolic (IP-H)|review_range":[
+   -0.1140685199,
+   -0.0591852243
+  ],
+  "IPHyperbolic (IP-H)|reliability_difference":-0.0203289474,
+  "IPHyperbolic (IP-H)|share_cheaper_and_as_reliable":0.37,
+  "IPExponential (IP-E)|review_difference":-0.0957309984,
+  "IPExponential (IP-E)|review_range":[
+   -0.1214678587,
+   -0.0682489617
+  ],
+  "IPExponential (IP-E)|reliability_difference":-0.0756578947,
+  "IPExponential (IP-E)|share_cheaper_and_as_reliable":0.08,
+  "PoissonPoint (IP-P)|review_difference":-0.2021718663,
+  "PoissonPoint (IP-P)|review_range":[
+   -0.2308630398,
+   -0.1693919487
+  ],
+  "PoissonPoint (IP-P)|reliability_difference":-0.0873026316,
+  "PoissonPoint (IP-P)|share_cheaper_and_as_reliable":0.01,
+  "ConsecutiveIrrelevant|review_difference":-0.1326770744,
+  "ConsecutiveIrrelevant|review_range":[
+   -0.1675924112,
+   -0.1005721726
+  ],
+  "ConsecutiveIrrelevant|reliability_difference":-0.0873026316,
+  "ConsecutiveIrrelevant|share_cheaper_and_as_reliable":0.01,
+  "CMHHeuristic|review_difference":-0.4009925893,
+  "CMHHeuristic|review_range":[
+   -0.4375810537,
+   -0.3662039649
+  ],
+  "CMHHeuristic|reliability_difference":-0.0873026316,
+  "CMHHeuristic|share_cheaper_and_as_reliable":0.01,
+  "Budget|review_difference":-0.3634853242,
+  "Budget|review_range":[
+   -0.4014798776,
+   -0.3299686471
+  ],
+  "Budget|reliability_difference":-0.0873026316,
+  "Budget|share_cheaper_and_as_reliable":0.01
+ },
+ {
+  "k":5,
+  "target":0.9,
+  "reliability":0.9071052632,
+  "review":0.0979317922,
+  "IPHyperbolic (IP-H), tail='model'|review_difference":-0.0874657634,
+  "IPHyperbolic (IP-H), tail='model'|review_range":[
+   -0.1210293594,
+   -0.0528513537
+  ],
+  "IPHyperbolic (IP-H), tail='model'|reliability_difference":-0.0707894737,
+  "IPHyperbolic (IP-H), tail='model'|share_cheaper_and_as_reliable":0.16,
+  "IPHyperbolic (IP-H)|review_difference":-0.0697985431,
+  "IPHyperbolic (IP-H)|review_range":[
+   -0.1023366589,
+   -0.0329135848
+  ],
+  "IPHyperbolic (IP-H)|reliability_difference":0.0065131579,
+  "IPHyperbolic (IP-H)|share_cheaper_and_as_reliable":0.65,
+  "IPExponential (IP-E)|review_difference":-0.0819381893,
+  "IPExponential (IP-E)|review_range":[
+   -0.1154372479,
+   -0.0468710002
+  ],
+  "IPExponential (IP-E)|reliability_difference":-0.0476973684,
+  "IPExponential (IP-E)|share_cheaper_and_as_reliable":0.285,
+  "PoissonPoint (IP-P)|review_difference":-0.188191777,
+  "PoissonPoint (IP-P)|review_range":[
+   -0.2247044903,
+   -0.1486987219
+  ],
+  "PoissonPoint (IP-P)|reliability_difference":-0.0928947368,
+  "PoissonPoint (IP-P)|share_cheaper_and_as_reliable":0.005,
+  "ConsecutiveIrrelevant|review_difference":-0.10983076,
+  "ConsecutiveIrrelevant|review_range":[
+   -0.1486886278,
+   -0.0656122992
+  ],
+  "ConsecutiveIrrelevant|reliability_difference":-0.0708552632,
+  "ConsecutiveIrrelevant|share_cheaper_and_as_reliable":0.18,
+  "CMHHeuristic|review_difference":-0.509901643,
+  "CMHHeuristic|review_range":[
+   -0.5479103987,
+   -0.4620422882
+  ],
+  "CMHHeuristic|reliability_difference":-0.0928947368,
+  "CMHHeuristic|share_cheaper_and_as_reliable":0.005,
+  "Budget|review_difference":-0.3406390099,
+  "Budget|review_range":[
+   -0.3802959732,
+   -0.2943926106
+  ],
+  "Budget|reliability_difference":-0.0928947368,
+  "Budget|share_cheaper_and_as_reliable":0.005
+ },
+ {
+  "k":5,
+  "target":0.95,
+  "reliability":0.9014473684,
+  "review":0.1408122041,
+  "IPHyperbolic (IP-H), tail='model'|review_difference":-0.0594186464,
+  "IPHyperbolic (IP-H), tail='model'|review_range":[
+   -0.1159626933,
+   0.0144022903
+  ],
+  "IPHyperbolic (IP-H), tail='model'|reliability_difference":-0.0763815789,
+  "IPHyperbolic (IP-H), tail='model'|share_cheaper_and_as_reliable":0.045,
+  "IPHyperbolic (IP-H)|review_difference":-0.0406471311,
+  "IPHyperbolic (IP-H)|review_range":[
+   -0.0958305035,
+   0.035780435
+  ],
+  "IPHyperbolic (IP-H)|reliability_difference":0.0119078947,
+  "IPHyperbolic (IP-H)|share_cheaper_and_as_reliable":0.605,
+  "IPExponential (IP-E)|review_difference":-0.0533540426,
+  "IPExponential (IP-E)|review_range":[
+   -0.1098210438,
+   0.0209781529
+  ],
+  "IPExponential (IP-E)|reliability_difference":-0.0426973684,
+  "IPExponential (IP-E)|share_cheaper_and_as_reliable":0.375,
+  "PoissonPoint (IP-P)|review_difference":-0.1486599186,
+  "PoissonPoint (IP-P)|review_range":[
+   -0.2084203583,
+   -0.0809573783
+  ],
+  "PoissonPoint (IP-P)|reliability_difference":-0.0985526316,
+  "PoissonPoint (IP-P)|share_cheaper_and_as_reliable":0.005,
+  "ConsecutiveIrrelevant|review_difference":-0.0669503482,
+  "ConsecutiveIrrelevant|review_range":[
+   -0.1353048271,
+   0.0126856924
+  ],
+  "ConsecutiveIrrelevant|reliability_difference":-0.0543421053,
+  "ConsecutiveIrrelevant|share_cheaper_and_as_reliable":0.26,
+  "CMHHeuristic|review_difference":-0.5812806712,
+  "CMHHeuristic|review_range":[
+   -0.6406336862,
+   -0.508726366
+  ],
+  "CMHHeuristic|reliability_difference":-0.0985526316,
+  "CMHHeuristic|share_cheaper_and_as_reliable":0.005,
+  "Budget|review_difference":-0.297758598,
+  "Budget|review_range":[
+   -0.3600710386,
+   -0.2171955966
+  ],
+  "Budget|reliability_difference":-0.0985526316,
+  "Budget|share_cheaper_and_as_reliable":0.005
+ },
+ {
+  "k":8,
+  "target":0.8,
+  "reliability":0.9329104478,
+  "review":0.0822923931,
+  "IPHyperbolic (IP-H), tail='model'|review_difference":-0.0941834759,
+  "IPHyperbolic (IP-H), tail='model'|review_range":[
+   -0.1222448659,
+   -0.0680062673
+  ],
+  "IPHyperbolic (IP-H), tail='model'|reliability_difference":-0.0670895522,
+  "IPHyperbolic (IP-H), tail='model'|share_cheaper_and_as_reliable":0.035,
+  "IPHyperbolic (IP-H)|review_difference":-0.0786417164,
+  "IPHyperbolic (IP-H)|review_range":[
+   -0.1072805167,
+   -0.0541313487
+  ],
+  "IPHyperbolic (IP-H)|reliability_difference":-0.0006716418,
+  "IPHyperbolic (IP-H)|share_cheaper_and_as_reliable":0.61,
+  "IPExponential (IP-E)|review_difference":-0.0891271348,
+  "IPExponential (IP-E)|review_range":[
+   -0.1171317847,
+   -0.0629638668
+  ],
+  "IPExponential (IP-E)|reliability_difference":-0.0558955224,
+  "IPExponential (IP-E)|share_cheaper_and_as_reliable":0.1,
+  "PoissonPoint (IP-P)|review_difference":-0.1945686405,
+  "PoissonPoint (IP-P)|review_range":[
+   -0.2238177564,
+   -0.1593865927
+  ],
+  "PoissonPoint (IP-P)|reliability_difference":-0.0670895522,
+  "PoissonPoint (IP-P)|share_cheaper_and_as_reliable":0.035,
+  "ConsecutiveIrrelevant|review_difference":-0.1259176964,
+  "ConsecutiveIrrelevant|review_range":[
+   -0.1640954427,
+   -0.093567331
+  ],
+  "ConsecutiveIrrelevant|reliability_difference":-0.0670895522,
+  "ConsecutiveIrrelevant|share_cheaper_and_as_reliable":0.035,
+  "CMHHeuristic|review_difference":-0.3932792249,
+  "CMHHeuristic|review_range":[
+   -0.4321152351,
+   -0.352845282
+  ],
+  "CMHHeuristic|reliability_difference":-0.0670895522,
+  "CMHHeuristic|share_cheaper_and_as_reliable":0.035,
+  "Budget|review_difference":-0.3564609785,
+  "Budget|review_range":[
+   -0.39973572,
+   -0.3134346299
+  ],
+  "Budget|reliability_difference":-0.0670895522,
+  "Budget|share_cheaper_and_as_reliable":0.035
+ },
+ {
+  "k":8,
+  "target":0.9,
+  "reliability":0.937238806,
+  "review":0.1071515208,
+  "IPHyperbolic (IP-H), tail='model'|review_difference":-0.0785528345,
+  "IPHyperbolic (IP-H), tail='model'|review_range":[
+   -0.1099332597,
+   -0.0368622756
+  ],
+  "IPHyperbolic (IP-H), tail='model'|reliability_difference":-0.0410447761,
+  "IPHyperbolic (IP-H), tail='model'|share_cheaper_and_as_reliable":0.235,
+  "IPHyperbolic (IP-H)|review_difference":-0.060822155,
+  "IPHyperbolic (IP-H)|review_range":[
+   -0.0920822689,
+   -0.0140817293
+  ],
+  "IPHyperbolic (IP-H)|reliability_difference":0.0358955224,
+  "IPHyperbolic (IP-H)|share_cheaper_and_as_reliable":0.83,
+  "IPExponential (IP-E)|review_difference":-0.0732173004,
+  "IPExponential (IP-E)|review_range":[
+   -0.1062579972,
+   -0.0301469688
+  ],
+  "IPExponential (IP-E)|reliability_difference":-0.0197014925,
+  "IPExponential (IP-E)|share_cheaper_and_as_reliable":0.475,
+  "PoissonPoint (IP-P)|review_difference":-0.1782479889,
+  "PoissonPoint (IP-P)|review_range":[
+   -0.2119781365,
+   -0.131015663
+  ],
+  "PoissonPoint (IP-P)|reliability_difference":-0.062761194,
+  "PoissonPoint (IP-P)|share_cheaper_and_as_reliable":0.03,
+  "ConsecutiveIrrelevant|review_difference":-0.1010585687,
+  "ConsecutiveIrrelevant|review_range":[
+   -0.1433188931,
+   -0.0608965437
+  ],
+  "ConsecutiveIrrelevant|reliability_difference":-0.0409701493,
+  "ConsecutiveIrrelevant|share_cheaper_and_as_reliable":0.27,
+  "CMHHeuristic|review_difference":-0.5007823256,
+  "CMHHeuristic|review_range":[
+   -0.5485502745,
+   -0.4444771212
+  ],
+  "CMHHeuristic|reliability_difference":-0.062761194,
+  "CMHHeuristic|share_cheaper_and_as_reliable":0.03,
+  "Budget|review_difference":-0.3316018508,
+  "Budget|review_range":[
+   -0.3848931545,
+   -0.2722413804
+  ],
+  "Budget|reliability_difference":-0.062761194,
+  "Budget|share_cheaper_and_as_reliable":0.03
+ },
+ {
+  "k":8,
+  "target":0.95,
+  "reliability":0.9288059701,
+  "review":0.1546076746,
+  "IPHyperbolic (IP-H), tail='model'|review_difference":-0.0459342686,
+  "IPHyperbolic (IP-H), tail='model'|review_range":[
+   -0.0890170013,
+   0.0257796671
+  ],
+  "IPHyperbolic (IP-H), tail='model'|reliability_difference":-0.0494029851,
+  "IPHyperbolic (IP-H), tail='model'|share_cheaper_and_as_reliable":0.11,
+  "IPHyperbolic (IP-H)|review_difference":-0.0270217772,
+  "IPHyperbolic (IP-H)|review_range":[
+   -0.0732112323,
+   0.046135435
+  ],
+  "IPHyperbolic (IP-H)|reliability_difference":0.0381343284,
+  "IPHyperbolic (IP-H)|share_cheaper_and_as_reliable":0.655,
+  "IPExponential (IP-E)|review_difference":-0.0400269241,
+  "IPExponential (IP-E)|review_range":[
+   -0.0841442268,
+   0.031871438
+  ],
+  "IPExponential (IP-E)|reliability_difference":-0.0164179104,
+  "IPExponential (IP-E)|share_cheaper_and_as_reliable":0.405,
+  "PoissonPoint (IP-P)|review_difference":-0.1339594269,
+  "PoissonPoint (IP-P)|review_range":[
+   -0.1798551931,
+   -0.0626951852
+  ],
+  "PoissonPoint (IP-P)|reliability_difference":-0.0711940299,
+  "PoissonPoint (IP-P)|share_cheaper_and_as_reliable":0.01,
+  "ConsecutiveIrrelevant|review_difference":-0.0536024149,
+  "ConsecutiveIrrelevant|review_range":[
+   -0.0990036633,
+   0.0203973641
+  ],
+  "ConsecutiveIrrelevant|reliability_difference":-0.0276119403,
+  "ConsecutiveIrrelevant|share_cheaper_and_as_reliable":0.32,
+  "CMHHeuristic|review_difference":-0.5675579608,
+  "CMHHeuristic|review_range":[
+   -0.6198270413,
+   -0.4920810205
+  ],
+  "CMHHeuristic|reliability_difference":-0.0711940299,
+  "CMHHeuristic|share_cheaper_and_as_reliable":0.01,
+  "Budget|review_difference":-0.2841456969,
+  "Budget|review_range":[
+   -0.3354511631,
+   -0.2059294482
+  ],
+  "Budget|reliability_difference":-0.0711940299,
+  "Budget|share_cheaper_and_as_reliable":0.01
+ }
+]
